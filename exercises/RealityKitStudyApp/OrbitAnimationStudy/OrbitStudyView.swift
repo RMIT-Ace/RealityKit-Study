@@ -28,27 +28,23 @@ struct OrbitStudyView: View {
             
             if let moonURL = Bundle.main.url(forResource: "Moon", withExtension: "usdz"),
                let moon = try? await Entity(contentsOf: moonURL) {
-                root.addChild(moon)
-                moon.transform = Transform(translation: .init(x: 0.25, y: 0, z: 0))
-                let startPosition = moon.transform.translation
-                var animationDefinition = OrbitAnimation(
-                    duration: 10,
-                    axis: [0, 1, 0],
-                    startTransform: Transform(translation: startPosition),
-                    rotationCount: 1,
-                    bindTarget: .transform
+                let moonPivot = Entity()
+                root.addChild(moonPivot)
+                moonPivot.addChild(moon)
+                moon.transform = Transform(
+                    scale: SIMD3(repeating: 0.25),
+                    translation: .init(x: 0.25, y: 0, z: 0)
                 )
-                animationDefinition.repeatMode = .repeat
-                animationDefinition.spinClockwise = false
-                let animationResource = try! AnimationResource.generate(with: animationDefinition)
-                moon.playAnimation(animationResource)
-                
-                // FIXME: cannot do 2 animation types!!!
+                // Rotation
                 moon.components[RotationComponent.self] = RotationComponent(
-                    rotationSpeed: 5,
+                    rotationSpeed: 0.0,
                     rotationAxis: [0, 1, 0]
                 )
-
+                // Orbit
+                moonPivot.components[RotationComponent.self] = RotationComponent(
+                    rotationSpeed: 0.5,
+                    rotationAxis: [0, 1, 0]
+                )
             }
         }
         .onAppear {
