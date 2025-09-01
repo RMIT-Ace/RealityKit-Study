@@ -34,6 +34,11 @@ struct ContentView: View {
             box3.transform = Transform(translation: SIMD3(0.2, 0, 0))   // Shift right 200 cm
             box3.transform.scale = SIMD3(repeating: 1.0 / 3.0)
             box3.transform.rotation = .init(angle: -90.0 * .pi / 180.0, axis: [0, 0, 1] )
+            
+            box3.components[RotationComponent.self] = RotationComponent(rotationSpeed: 1, rotationAxis: [1, 0, 0])
+        }
+        .onAppear {
+            RotationSystem.registerSystem()
         }
     }
     
