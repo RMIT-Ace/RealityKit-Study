@@ -7,10 +7,49 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		50956CFA2E65560D007CA447 /* OrbitAnimationStudy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OrbitAnimationStudy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50B08DE62E63F8D2004FF1F2 /* RealityKitStudyApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealityKitStudyApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		50956D482E656260007CA447 /* Exceptions for "Components" folder in "RealityKitStudyApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				RotationComponent.swift,
+			);
+			target = 50B08DE52E63F8D2004FF1F2 /* RealityKitStudyApp */;
+		};
+		50956D4A2E65626A007CA447 /* Exceptions for "Systems" folder in "RealityKitStudyApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				RotationSystem.swift,
+			);
+			target = 50B08DE52E63F8D2004FF1F2 /* RealityKitStudyApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		50956CFB2E65560D007CA447 /* OrbitAnimationStudy */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OrbitAnimationStudy;
+			sourceTree = "<group>";
+		};
+		50956D472E65625A007CA447 /* Components */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				50956D482E656260007CA447 /* Exceptions for "Components" folder in "RealityKitStudyApp" target */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		50956D492E656264007CA447 /* Systems */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				50956D4A2E65626A007CA447 /* Exceptions for "Systems" folder in "RealityKitStudyApp" target */,
+			);
+			path = Systems;
+			sourceTree = "<group>";
+		};
 		50B08DE82E63F8D2004FF1F2 /* RealityKitStudyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = RealityKitStudyApp;
@@ -19,6 +58,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		50956CF72E65560D007CA447 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50B08DE32E63F8D2004FF1F2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -32,7 +78,10 @@
 		50B08DDD2E63F8D2004FF1F2 = {
 			isa = PBXGroup;
 			children = (
+				50956D492E656264007CA447 /* Systems */,
+				50956D472E65625A007CA447 /* Components */,
 				50B08DE82E63F8D2004FF1F2 /* RealityKitStudyApp */,
+				50956CFB2E65560D007CA447 /* OrbitAnimationStudy */,
 				50B08DE72E63F8D2004FF1F2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				50B08DE62E63F8D2004FF1F2 /* RealityKitStudyApp.app */,
+				50956CFA2E65560D007CA447 /* OrbitAnimationStudy.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +98,30 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		50956CF92E65560D007CA447 /* OrbitAnimationStudy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50956D022E655611007CA447 /* Build configuration list for PBXNativeTarget "OrbitAnimationStudy" */;
+			buildPhases = (
+				50956CF62E65560D007CA447 /* Sources */,
+				50956CF72E65560D007CA447 /* Frameworks */,
+				50956CF82E65560D007CA447 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				50956CFB2E65560D007CA447 /* OrbitAnimationStudy */,
+				50956D472E65625A007CA447 /* Components */,
+				50956D492E656264007CA447 /* Systems */,
+			);
+			name = OrbitAnimationStudy;
+			packageProductDependencies = (
+			);
+			productName = OrbitAnimationStudy;
+			productReference = 50956CFA2E65560D007CA447 /* OrbitAnimationStudy.app */;
+			productType = "com.apple.product-type.application";
+		};
 		50B08DE52E63F8D2004FF1F2 /* RealityKitStudyApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 50B08DF12E63F8D4004FF1F2 /* Build configuration list for PBXNativeTarget "RealityKitStudyApp" */;
@@ -80,6 +154,9 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					50956CF92E65560D007CA447 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 					50B08DE52E63F8D2004FF1F2 = {
 						CreatedOnToolsVersion = 26.0;
 					};
@@ -100,11 +177,19 @@
 			projectRoot = "";
 			targets = (
 				50B08DE52E63F8D2004FF1F2 /* RealityKitStudyApp */,
+				50956CF92E65560D007CA447 /* OrbitAnimationStudy */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		50956CF82E65560D007CA447 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50B08DE42E63F8D2004FF1F2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +200,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		50956CF62E65560D007CA447 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50B08DE22E63F8D2004FF1F2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -125,6 +217,72 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		50956D032E655611007CA447 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z6UU7WL5HP;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camara is required for spatial tracking session.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ace-authors.realitykit.study.OrbitAnimationStudy";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		50956D042E655611007CA447 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z6UU7WL5HP;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camara is required for spatial tracking session.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ace-authors.realitykit.study.OrbitAnimationStudy";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		50B08DEF2E63F8D4004FF1F2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -315,6 +473,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		50956D022E655611007CA447 /* Build configuration list for PBXNativeTarget "OrbitAnimationStudy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50956D032E655611007CA447 /* Debug */,
+				50956D042E655611007CA447 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		50B08DE12E63F8D2004FF1F2 /* Build configuration list for PBXProject "RealityKitStudyApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
