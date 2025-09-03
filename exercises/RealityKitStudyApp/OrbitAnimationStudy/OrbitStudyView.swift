@@ -24,27 +24,27 @@ struct OrbitStudyView: View {
                     rotationSpeed: 1,
                     rotationAxis: [0, 1, 0]
                 )
-            }
-            
-            if let moonURL = Bundle.main.url(forResource: "Moon", withExtension: "usdz"),
-               let moon = try? await Entity(contentsOf: moonURL) {
-                let moonPivot = Entity()
-                root.addChild(moonPivot)
-                moonPivot.addChild(moon)
-                moon.transform = Transform(
-                    scale: SIMD3(repeating: 0.25),
-                    translation: .init(x: 0.25, y: 0, z: 0)
-                )
-                // Rotation
-                moon.components[RotationComponent.self] = RotationComponent(
-                    rotationSpeed: 0.0,
-                    rotationAxis: [0, 1, 0]
-                )
-                // Orbit
-                moonPivot.components[RotationComponent.self] = RotationComponent(
-                    rotationSpeed: 0.5,
-                    rotationAxis: [0, 1, 0]
-                )
+                
+                if let moonURL = Bundle.main.url(forResource: "Moon", withExtension: "usdz"),
+                   let moon = try? await Entity(contentsOf: moonURL) {
+                    let moonPivot = Entity()
+                    root.addChild(moonPivot)
+                    moonPivot.addChild(moon)
+                    moon.transform = Transform(
+                        scale: SIMD3(repeating: 0.25),
+                        translation: .init(x: 0.25, y: 0, z: 0)
+                    )
+                    // Rotation
+                    moon.components[RotationComponent.self] = RotationComponent(
+                        rotationSpeed: 0.0,
+                        rotationAxis: [0, 1, 0]
+                    )
+                    // Orbit
+                    moonPivot.components[RotationComponent.self] = RotationComponent(
+                        rotationSpeed: 0.5,
+                        rotationAxis: [0, 1, 0]
+                    )
+                }
             }
         }
         .onAppear {
