@@ -19,11 +19,21 @@ struct OrbitStudyView: View {
     
     @State var earth: Entity? = nil
     @State var moon: Entity? = nil
+    
+    @State private var skyBox: Entity? = nil
+    @State private var isSkyboxVisible = false
 
     var body: some View {
         VStack {
             RealityView { content in
                 content.camera = .spatialTracking
+                
+                if let skyBox = await makeSkybox() {
+                    self.skyBox = skyBox
+                    content.add(skyBox)
+                } else {
+                    print("WARN: No skybox specified")
+                }
                 
                 let root = Entity()
                 content.add(root)
@@ -42,6 +52,7 @@ struct OrbitStudyView: View {
             } update: { content in
                 Task { @MainActor in
                     await updateSpeeds(secondsInEarthDay: oneEarthDay)
+                    self.skyBox?.isEnabled = isSkyboxVisible
                 }
             }
             .frame(maxHeight: .infinity)
@@ -58,12 +69,14 @@ struct OrbitStudyView: View {
             }
             
             VStack {
+                Toggle("Skybox", isOn: $isSkyboxVisible)
                 Slider(value: $oneEarthDay, in: 1...10, step: 1)
                 Text("1 Earth Day = \(oneEarthDay, specifier: "%.0f") seconds")
             }
             .padding(.horizontal, 20)
             
         }
+        .ignoresSafeArea()
     }
     
     private func updateSpeeds(secondsInEarthDay: Float = 10.0) async {
@@ -104,10 +117,6 @@ struct OrbitStudyView: View {
             print("ERROR: loading Earth model")
             return nil
         }
-        earth.components[RotationComponent.self] = RotationComponent(
-            rotationSpeed: rotationSpeed,
-            rotationAxis: [0, 1, 0]
-        )
         return earth
     }
     
@@ -125,21 +134,23 @@ struct OrbitStudyView: View {
             scale: SIMD3(repeating: 0.25),
             translation: .init(x: 0.25, y: 0, z: 0)
         )
-        // Rotation
-        moon.components[RotationComponent.self] = RotationComponent(
-            rotationSpeed: rotationSpeed,
-            rotationAxis: [0, 1, 0]
-        )
-        // Orbit
-        moonPivot.components[RotationComponent.self] = RotationComponent(
-            rotationSpeed: orbitalSpeed,
-            rotationAxis: [0, 1, 0]
-        )
-        
         return moonPivot
     }
 }
 
 #Preview {
     OrbitStudyView()
+}
+
+// See: https://www.cephalopod.studio/blog/creating-immersive-visionos-environments-with-reality-kit-and-skyboxes-from-blockade-labs-with-a-true-3d-world-surprise
+fileprivate func makeSkybox() async -> Entity? {
+    guard let texture = try? await TextureResource(named: "starfield") else {
+        fatalError("ERROR: Failed to load skybox texture")
+    }
+    let mesh = MeshResource.generateSphere(radius: 500)
+//    let material = SimpleMaterial(color: .darkGray, isMetallic: false)
+    let material = UnlitMaterial(texture: texture)
+    let skyBoxEntity = ModelEntity(mesh: mesh, materials: [material])
+    skyBoxEntity.scale = [-1, 1, 1]
+    return skyBoxEntity
 }
