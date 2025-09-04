@@ -62,11 +62,6 @@ struct OrbitStudyView: View {
                     RotationSystem.registerSystem()
                 }
             }
-            .onChange(of: oneEarthDay) { _, _ in
-                Task { @MainActor in
-                    await updateSpeeds(secondsInEarthDay: oneEarthDay)
-                }
-            }
             
             VStack {
                 Toggle("Skybox", isOn: $isSkyboxVisible)
