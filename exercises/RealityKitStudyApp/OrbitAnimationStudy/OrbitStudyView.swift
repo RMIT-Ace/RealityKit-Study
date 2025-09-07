@@ -49,12 +49,21 @@ struct OrbitStudyView: View {
                     root.addChild(moon)
                 }
                 
+                // Camera
+//                let camera = Entity()
+//                let cameraPosition = SIMD3<Float>(x: 0, y: 0, z: 3.0)
+//                camera
+//                    .look( at: earth!.position, from: cameraPosition, relativeTo: nil )
+//                camera.components.set(PerspectiveCameraComponent())
+//                root.addChild(camera)
+                
             } update: { content in
                 Task { @MainActor in
                     await updateSpeeds(secondsInEarthDay: oneEarthDay)
                     self.skyBox?.isEnabled = isSkyboxVisible
                 }
             }
+            .background(.black)
             .frame(maxHeight: .infinity)
             .onAppear {
                 Task { @MainActor in
