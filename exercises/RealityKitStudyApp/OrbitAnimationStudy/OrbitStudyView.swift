@@ -28,6 +28,9 @@ struct OrbitStudyView: View {
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
 
+    // Keep a reference to the light so we can re-aim it during updates.
+    @State private var sunLight: Entity? = nil
+
     var body: some View {
         VStack {
             RealityView { content in
@@ -42,14 +45,27 @@ struct OrbitStudyView: View {
                 
                 let root = Entity()
                 content.add(root)
-                root.transform = Transform(translation: .init(x: 0, y: 0, z: -0.1))
+                root.transform = Transform(
+                    translation: .init(x: 0, y: 0, z: -0.5)
+                )
                 self.root = root
                 
+                let lightEntity = Entity()
+                let lightComponent = DirectionalLightComponent(
+                    color: .white,
+                    intensity: 6000
+                )
+                lightEntity.components.set([
+                    lightComponent,
+                    DirectionalLightComponent.Shadow()
+                ])
+                self.sunLight = lightEntity
+
                 if let sun = await makeStellarObject(name: "Sun") {
                     self.sun = sun
                     root.addChild(sun)
                 }
-                
+
                 if let earth = await makeStellarObject(
                     name: "Earth",
                     distanceFromCenter: 1.0
@@ -58,6 +74,8 @@ struct OrbitStudyView: View {
                     sun?.addChildToMainBody(earth)
                 }
                 
+                sun?.addChild(lightEntity)
+
                 if let moon = await makeStellarObject(
                     name: "Moon",
                     scale: 0.25,
@@ -67,6 +85,15 @@ struct OrbitStudyView: View {
                     earth?.addChildToMainBody(moon)
                 }
                 
+                // Aim the directional light from the Sun toward the Earth (world-space).
+                if let sun = self.sun, let earth = self.earth {
+                    lightEntity.look(
+                        at: earth.position(relativeTo: nil),
+                        from: sun.position(relativeTo: nil),
+                        relativeTo: nil
+                    )
+                }
+
                 // Camera
 //                let camera = Entity()
 //                let cameraPosition = SIMD3<Float>(x: 0, y: 0, z: 1.0)
@@ -83,6 +110,20 @@ struct OrbitStudyView: View {
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
                     await updateOrbitAndRotation()
+
+                    // Re-aim the light each update so it keeps pointing to the Earth as it moves.
+                    if let sun = self.sun,
+                       let earth = self.earth?.findEntity(named: "MainBody"),
+                        let light = self.sunLight {
+                        print("DEBUG: re-aim light")
+                        var sunPos = sun.position(relativeTo: nil)
+                        sunPos.y += 0.35
+                        light.look(
+                            at: earth.position(relativeTo: nil),
+                            from: sunPos,
+                            relativeTo: nil
+                        )
+                    }
                 }
             }
             .background(.black)
@@ -96,7 +137,7 @@ struct OrbitStudyView: View {
             HStack(alignment: .top) {
                 VStack {
                     Slider(value: $oneEarthDay, in: 0.1...5, step: 0.1)
-                    Text("1 Earth Day = \(oneEarthDay, specifier: "%.1f") seconds")
+                    Text("1 Earth Day = \(oneEarthDay, specifier: "%.1f")s")
                 }
                 Toggle("Skybox", isOn: $isSkyboxVisible)
                     .frame(width: 150)
@@ -206,4 +247,3 @@ struct OrbitStudyView: View {
 #Preview {
     OrbitStudyView()
 }
-
