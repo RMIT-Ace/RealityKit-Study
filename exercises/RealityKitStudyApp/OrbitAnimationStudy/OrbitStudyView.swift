@@ -13,10 +13,15 @@ struct OrbitStudyView: View {
     static let oneRotationPerSec: Float = .pi * 2
     
     @State var oneEarthDay: Float = 5.0
+    
+    @State var sunRotationSpeed: Float = 0.0
+    @State var earthOrbitalSpeed: Float = 0.0
     @State var earthRotationSpeed: Float = 0.0
     @State var moonOrbitalSpeed: Float = 0.0
     @State var moonRotationSpeed: Float = 0.0
     
+    @State var root: Entity? = nil
+    @State var sun: Entity? = nil
     @State var earth: Entity? = nil
     @State var moon: Entity? = nil
     
@@ -37,45 +42,64 @@ struct OrbitStudyView: View {
                 
                 let root = Entity()
                 content.add(root)
-                root.transform = Transform(translation: .init(x: 0, y: 0, z: -0.5))
+                root.transform = Transform(translation: .init(x: 0, y: 0, z: -0.1))
+                self.root = root
                 
-                if let earth = await makeEarth(rotationSpeed: earthRotationSpeed) {
-                    self.earth = earth
-                    root.addChild(earth)
+                if let sun = await makeStellarObject(name: "Sun") {
+                    self.sun = sun
+                    root.addChild(sun)
                 }
                 
-                if let moon = await makeMoon(orbitalSpeed: moonOrbitalSpeed, rotationSpeed: moonRotationSpeed) {
+                if let earth = await makeStellarObject(
+                    name: "Earth",
+                    distanceFromCenter: 1.0
+                ) {
+                    self.earth = earth
+                    sun?.addChildToMainBody(earth)
+                }
+                
+                if let moon = await makeStellarObject(
+                    name: "Moon",
+                    scale: 0.25,
+                    distanceFromCenter: 0.25
+                ) {
                     self.moon = moon
-                    root.addChild(moon)
+                    earth?.addChildToMainBody(moon)
                 }
                 
                 // Camera
 //                let camera = Entity()
-//                let cameraPosition = SIMD3<Float>(x: 0, y: 0, z: 3.0)
+//                let cameraPosition = SIMD3<Float>(x: 0, y: 0, z: 1.0)
 //                camera
-//                    .look( at: earth!.position, from: cameraPosition, relativeTo: nil )
+//                    .look(
+//                        at: earth!.position,
+//                        from: sun!.position,
+//                        relativeTo: earth
+//                    )
 //                camera.components.set(PerspectiveCameraComponent())
 //                root.addChild(camera)
                 
             } update: { content in
                 Task { @MainActor in
-                    await updateSpeeds(secondsInEarthDay: oneEarthDay)
                     self.skyBox?.isEnabled = isSkyboxVisible
+                    await updateOrbitAndRotation()
                 }
             }
             .background(.black)
             .frame(maxHeight: .infinity)
             .onAppear {
                 Task { @MainActor in
-                    await updateSpeeds(secondsInEarthDay: 5.0)
                     RotationSystem.registerSystem()
                 }
             }
             
-            VStack {
+            HStack(alignment: .top) {
+                VStack {
+                    Slider(value: $oneEarthDay, in: 0.1...5, step: 0.1)
+                    Text("1 Earth Day = \(oneEarthDay, specifier: "%.1f") seconds")
+                }
                 Toggle("Skybox", isOn: $isSkyboxVisible)
-                Slider(value: $oneEarthDay, in: 1...10, step: 1)
-                Text("1 Earth Day = \(oneEarthDay, specifier: "%.0f") seconds")
+                    .frame(width: 150)
             }
             .padding(.horizontal, 20)
             
@@ -83,62 +107,99 @@ struct OrbitStudyView: View {
         .ignoresSafeArea()
     }
     
-    private func updateSpeeds(secondsInEarthDay: Float = 10.0) async {
-        oneEarthDay = secondsInEarthDay
+    private func updateOrbitAndRotation() async {
+        sunRotationSpeed = earthRotationSpeed / 27
         earthRotationSpeed = Self.oneRotationPerSec / oneEarthDay
+        earthOrbitalSpeed = earthRotationSpeed / 365.25
+        
+        sunRotationSpeed = earthRotationSpeed / 27
         moonOrbitalSpeed = earthRotationSpeed / 27.3
         moonRotationSpeed = earthRotationSpeed / 27.3
+        
+        await updateRotation(for: "Sun", speed: sunRotationSpeed)
+        
+        await updateRotation(for: "Earth", speed: earthRotationSpeed)
+        await updateOrbit(for: "Earth", speed: earthOrbitalSpeed)
+        
+        await updateRotation(for: "Moon", speed: moonRotationSpeed)
+        await updateOrbit(for: "Moon", speed: moonOrbitalSpeed)
+    }
+    
+    private func updateRotation(
+        for name: String,
+        speed: Float
+    ) async {
+        guard let root = root,
+              let entity = root.findEntity(named: name),
+              let firstChild = entity.findEntity(named: "MainBody") else {
+            print("ERROR: failed to find entity with name: \(name)")
+            return
+        }
+        firstChild.components[RotationComponent.self] = RotationComponent(
+            rotationSpeed: speed,
+            rotationAxis: [0, 1, 0 ]
+        )
+    }
+    
+    private func updateOrbit(
+        for name: String,
+        speed: Float
+    ) async {
+        guard let root = root,
+              let entity = root.findEntity(named: name) else {
+            print("ERROR: failed to find entity with name: \(name)")
+            return
+        }
 
-        earth?.components[RotationComponent.self] = RotationComponent(
-            rotationSpeed: earthRotationSpeed,
+        entity.components[RotationComponent.self] = RotationComponent(
+            rotationSpeed: speed,
             rotationAxis: [0, 1, 0]
         )
-        // Rotation (of pivotEntity of the moon, a.k.a parent of the moon.
-        if let moonPivot = moon {
-            // Adjust orbital rate.
-            moonPivot.components[RotationComponent.self] = RotationComponent(
-                rotationSpeed: moonOrbitalSpeed,
-                rotationAxis: [0, 1, 0]
-            )
-            
-            // Adjust revolution rate.
-            if let moon = moonPivot.findEntity(named: "Moon") {
-                moon.components[RotationComponent.self] = RotationComponent(
-                    rotationSpeed: moonRotationSpeed,
-                    rotationAxis: [0, 1, 0]
-                )
-            } else {
-                print("ERROR: moon(child) is nil")
-            }
-        } else {
-            print("ERROR: moon(pivot) is nil")
-        }
     }
     
-    private func makeEarth(rotationSpeed: Float = 0.0) async -> Entity? {
-        guard let earthURL = Bundle.main.url(forResource: "Earth", withExtension: "usdz"),
-              let earth = try? await Entity(contentsOf: earthURL) else {
-            print("ERROR: loading Earth model")
-            return nil
-        }
-        return earth
-    }
-    
-    private func makeMoon(orbitalSpeed: Float = 0.0, rotationSpeed: Float = 0.0) async -> Entity? {
-        guard let moonURL = Bundle.main.url(forResource: "Moon", withExtension: "usdz"),
-              let moon = try? await Entity(contentsOf: moonURL) else {
+    private func makeStellarObject(
+        name: String,
+        scale: Float = 1.0,
+        distanceFromCenter: Float = 0.0
+    ) async -> Entity? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "usdz"),
+              let stellarObj = try? await Entity(contentsOf: url) else {
             print("ERROR: loading Moon model")
             return nil
         }
         
-        let moonPivot = Entity()
-        moonPivot.addChild(moon)
-        moon.name = "Moon"
-        moon.transform = Transform(
-            scale: SIMD3(repeating: 0.25),
-            translation: .init(x: 0.25, y: 0, z: 0)
+        let objPivotPoint = Entity()
+        objPivotPoint.name = name
+        stellarObj.name = "MainBody"
+        stellarObj.scale = SIMD3(repeating: scale)
+        stellarObj.transform = Transform(
+            scale: SIMD3(repeating: scale),
+            translation: .init(x: distanceFromCenter, y: 0, z: 0)
         )
-        return moonPivot
+        objPivotPoint.addChild(stellarObj)
+        
+        // For adding children.
+        let nonRotatingMainBody = Entity()
+        nonRotatingMainBody.name = "NonRotatingMainBody"
+        nonRotatingMainBody.transform = Transform(
+            translation: .init(x: distanceFromCenter, y: 0, z: 0)
+        )
+        objPivotPoint.addChild(nonRotatingMainBody)
+        
+        return objPivotPoint
+    }
+    
+    // See: https://www.cephalopod.studio/blog/creating-immersive-visionos-environments-with-reality-kit-and-skyboxes-from-blockade-labs-with-a-true-3d-world-surprise
+    private func makeSkybox() async -> Entity? {
+        guard let texture = try? await TextureResource(named: "starfield") else {
+            fatalError("ERROR: Failed to load skybox texture")
+        }
+        let mesh = MeshResource.generateSphere(radius: 500)
+        //    let material = SimpleMaterial(color: .darkGray, isMetallic: false)
+        let material = UnlitMaterial(texture: texture)
+        let skyBoxEntity = ModelEntity(mesh: mesh, materials: [material])
+        skyBoxEntity.scale = [-1, 1, 1]
+        return skyBoxEntity
     }
 }
 
@@ -146,15 +207,3 @@ struct OrbitStudyView: View {
     OrbitStudyView()
 }
 
-// See: https://www.cephalopod.studio/blog/creating-immersive-visionos-environments-with-reality-kit-and-skyboxes-from-blockade-labs-with-a-true-3d-world-surprise
-fileprivate func makeSkybox() async -> Entity? {
-    guard let texture = try? await TextureResource(named: "starfield") else {
-        fatalError("ERROR: Failed to load skybox texture")
-    }
-    let mesh = MeshResource.generateSphere(radius: 500)
-//    let material = SimpleMaterial(color: .darkGray, isMetallic: false)
-    let material = UnlitMaterial(texture: texture)
-    let skyBoxEntity = ModelEntity(mesh: mesh, materials: [material])
-    skyBoxEntity.scale = [-1, 1, 1]
-    return skyBoxEntity
-}
