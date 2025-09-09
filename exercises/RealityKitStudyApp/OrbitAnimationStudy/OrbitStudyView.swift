@@ -19,12 +19,14 @@ struct OrbitStudyView: View {
     @State var earthRotationSpeed: Float = 0.0
     @State var moonOrbitalSpeed: Float = 0.0
     @State var moonRotationSpeed: Float = 0.0
-    
+    @State var mercuryOrbitalSpeed: Float = 0.0
+    @State var mercuryRotationSpeed: Float = 0.0
+
     @State var root: Entity? = nil
     @State var sun: Entity? = nil
-    @State var earth: Entity? = nil
-    @State var moon: Entity? = nil
-    
+    @State var mercury: Entity? = nil
+    @State var venus: Entity? = nil
+
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
 
@@ -50,80 +52,48 @@ struct OrbitStudyView: View {
                 )
                 self.root = root
                 
-                let lightEntity = Entity()
-                let lightComponent = DirectionalLightComponent(
-                    color: .white,
-                    intensity: 6000
-                )
-                lightEntity.components.set([
-                    lightComponent,
-                    DirectionalLightComponent.Shadow()
-                ])
-                self.sunLight = lightEntity
-
                 if let sun = await makeStellarObject(name: "Sun") {
                     self.sun = sun
                     root.addChild(sun)
                 }
+                
 
                 if let earth = await makeStellarObject(
                     name: "Earth",
                     distanceFromCenter: 1.0
                 ) {
-                    self.earth = earth
                     sun?.addChildToMainBody(earth)
+                    
+                    // Moon of Earth
+                    if let moon = await makeStellarObject(
+                        name: "Moon",
+                        scale: 0.25,
+                        distanceFromCenter: 0.25
+                    ) {
+                        earth.addChildToMainBody(moon)
+                    }
                 }
                 
-                sun?.addChild(lightEntity)
-
-                if let moon = await makeStellarObject(
-                    name: "Moon",
-                    scale: 0.25,
-                    distanceFromCenter: 0.25
+                if let mercury = await makeStellarObject(
+                    name: "Mercury",
+                    scale: 0.38,
+                    distanceFromCenter: 0.39
                 ) {
-                    self.moon = moon
-                    earth?.addChildToMainBody(moon)
+                    sun?.addChildToMainBody(mercury)
                 }
                 
-                // Aim the directional light from the Sun toward the Earth (world-space).
-                if let sun = self.sun, let earth = self.earth {
-                    lightEntity.look(
-                        at: earth.position(relativeTo: nil),
-                        from: sun.position(relativeTo: nil),
-                        relativeTo: nil
-                    )
+                if let venus = await makeStellarObject(
+                    name: "Venus",
+                    scale: 0.95,
+                    distanceFromCenter: 0.72
+                ) {
+                    sun?.addChildToMainBody(venus)
                 }
-
-                // Camera
-//                let camera = Entity()
-//                let cameraPosition = SIMD3<Float>(x: 0, y: 0, z: 1.0)
-//                camera
-//                    .look(
-//                        at: earth!.position,
-//                        from: sun!.position,
-//                        relativeTo: earth
-//                    )
-//                camera.components.set(PerspectiveCameraComponent())
-//                root.addChild(camera)
                 
             } update: { content in
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
                     await updateOrbitAndRotation()
-
-                    // Re-aim the light each update so it keeps pointing to the Earth as it moves.
-                    if let sun = self.sun,
-                       let earth = self.earth?.findEntity(named: "MainBody"),
-                        let light = self.sunLight {
-                        print("DEBUG: re-aim light")
-                        var sunPos = sun.position(relativeTo: nil)
-                        sunPos.y += 0.35
-                        light.look(
-                            at: earth.position(relativeTo: nil),
-                            from: sunPos,
-                            relativeTo: nil
-                        )
-                    }
                 }
             }
             .background(.black)
