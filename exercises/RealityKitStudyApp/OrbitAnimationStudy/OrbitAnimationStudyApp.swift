@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct OrbitAnimationStudyApp: App {
+    @State private var solarSysVM = SolarSysViewModel()
+    
     var body: some Scene {
         WindowGroup {
             OrbitStudyView()
+                .environment(solarSysVM)
         }
     }
 }

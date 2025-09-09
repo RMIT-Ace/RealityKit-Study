@@ -10,19 +10,19 @@ import Foundation
 @Observable
 class SolarSysViewModel {
     
-    static let stellarDistanceRatio: Float = 1 / 100.0
+    static let stellarDistanceRatio: Float = 1 / 50.0
     
     let stellarObjects: [StellarObject] = [
         StellarObject(
             name: "Sun",
-            scale: 1.0,
+            scale: 1.0 * 10,
             distanceCenter: 0.0,
             rotationSpeed: 1.0,
             orbitalSpeed: 1.0,
             satellites: [
                 StellarObject(
                     name: "Mercury",
-                    scale: 1.0,
+                    scale: 1.0 / 3.0,
                     distanceCenter: 58.0 * stellarDistanceRatio,
                     rotationSpeed: 1.0,
                     orbitalSpeed: 1.0
@@ -43,8 +43,8 @@ class SolarSysViewModel {
                     satellites: [
                         StellarObject(
                             name: "Moon",
-                            scale: 1.0,
-                            distanceCenter: 0.384 * stellarDistanceRatio,
+                            scale: 1.0 / 3.0,
+                            distanceCenter: 12 * stellarDistanceRatio,
                             rotationSpeed: 1.0,
                             orbitalSpeed: 1.0,
                         )

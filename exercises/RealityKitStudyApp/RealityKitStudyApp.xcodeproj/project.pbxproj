@@ -29,6 +29,16 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5088C3532E6FE9A10033C501 /* Model */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Model;
+			sourceTree = "<group>";
+		};
+		5088C3542E6FE9A80033C501 /* ViewModel */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		50956CFB2E65560D007CA447 /* OrbitAnimationStudy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = OrbitAnimationStudy;
@@ -78,6 +88,8 @@
 		50B08DDD2E63F8D2004FF1F2 = {
 			isa = PBXGroup;
 			children = (
+				5088C3542E6FE9A80033C501 /* ViewModel */,
+				5088C3532E6FE9A10033C501 /* Model */,
 				50956D492E656264007CA447 /* Systems */,
 				50956D472E65625A007CA447 /* Components */,
 				50B08DE82E63F8D2004FF1F2 /* RealityKitStudyApp */,
@@ -111,6 +123,8 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				5088C3532E6FE9A10033C501 /* Model */,
+				5088C3542E6FE9A80033C501 /* ViewModel */,
 				50956CFB2E65560D007CA447 /* OrbitAnimationStudy */,
 				50956D472E65625A007CA447 /* Components */,
 				50956D492E656264007CA447 /* Systems */,

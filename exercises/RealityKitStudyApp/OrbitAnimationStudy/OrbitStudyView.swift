@@ -9,6 +9,7 @@ import SwiftUI
 import RealityKit
 
 struct OrbitStudyView: View {
+    @Environment(SolarSysViewModel.self) var vm
     
     static let oneRotationPerSec: Float = .pi * 2
     
@@ -32,8 +33,48 @@ struct OrbitStudyView: View {
 
     // Keep a reference to the light so we can re-aim it during updates.
     @State private var sunLight: Entity? = nil
-
+    
     var body: some View {
+        VStack {
+            RealityView { content in
+                content.camera = .spatialTracking
+                
+                if let skyBox = await makeSkybox() {
+                    self.skyBox = skyBox
+                    content.add(skyBox)
+                } else {
+                    print("WARN: No skybox specified")
+                }
+                
+                let root = Entity()
+                root.name = "root"
+                content.add(root)
+                root.transform = Transform(
+                    translation: .init(x: -2, y: 0, z: -0.5)
+                )
+                self.root = root
+                
+                for stellaObj in vm.stellarObjects {
+                    await addSolarObject(stellaObj, to: root)
+                }
+            } update: { content in
+                Task { @MainActor in
+                    self.skyBox?.isEnabled = isSkyboxVisible
+                    await updateOrbitAndRotation()
+                }
+            }
+            .onAppear {
+                Task { @MainActor in
+                    RotationSystem.registerSystem()
+                }
+            }
+            
+            controlPanelView()
+        }
+        .ignoresSafeArea()
+    }
+
+    var oldBody: some View {
         VStack {
             RealityView { content in
                 content.camera = .spatialTracking
@@ -118,7 +159,20 @@ struct OrbitStudyView: View {
         .ignoresSafeArea()
     }
     
+    private func controlPanelView() -> some View {
+        HStack(alignment: .top) {
+            VStack {
+                Slider(value: $oneEarthDay, in: 0.1...5, step: 0.1)
+                Text("1 Earth Day = \(oneEarthDay, specifier: "%.1f")s")
+            }
+            Toggle("Skybox", isOn: $isSkyboxVisible)
+                .frame(width: 150)
+        }
+        .padding(.horizontal, 20)
+    }
+    
     private func updateOrbitAndRotation() async {
+        print("DEBUG: updateOrbitAndRotation")
         sunRotationSpeed = earthRotationSpeed / 27
         earthRotationSpeed = Self.oneRotationPerSec / oneEarthDay
         earthOrbitalSpeed = earthRotationSpeed / 365.25
@@ -166,6 +220,27 @@ struct OrbitStudyView: View {
             rotationSpeed: speed,
             rotationAxis: [0, 1, 0]
         )
+    }
+    
+    private func addSolarObject(
+        _ solarObj: StellarObject,
+        to entity: Entity
+    ) async {
+        if let obj = await makeStellarObject(
+            name: solarObj.name,
+            scale: solarObj.scale,
+            distanceFromCenter: solarObj.distanceCenter
+        ) {
+            print("DEBUG: added \(obj.name) to \(entity.name)")
+            if entity.name == "root" {
+                entity.addChild(obj)
+            } else {
+                entity.addChildToMainBody(obj)
+            }
+            for child in solarObj.satellites {
+                await addSolarObject(child, to: obj)
+            }
+        }
     }
     
     private func makeStellarObject(
@@ -216,4 +291,5 @@ struct OrbitStudyView: View {
 
 #Preview {
     OrbitStudyView()
+        .environment(SolarSysViewModel())
 }
