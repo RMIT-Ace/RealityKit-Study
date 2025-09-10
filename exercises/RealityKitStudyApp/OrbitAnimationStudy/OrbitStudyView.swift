@@ -11,9 +11,10 @@ import RealityKit
 struct OrbitStudyView: View {
     @Environment(SolarSysViewModel.self) var vm
     
+    // FIXME: Naming issue. Is it rotation / sec or sec / rotation?
     static let oneRotationPerSec: Float = .pi * 2
     
-    @State var oneEarthDay: Float = 5.0
+    @State var secondsInOneEarthDay: Float = 5.0
     
     @State var sunRotationSpeed: Float = 0.0
     @State var earthOrbitalSpeed: Float = 0.0
@@ -74,96 +75,13 @@ struct OrbitStudyView: View {
         .ignoresSafeArea()
     }
 
-    var oldBody: some View {
-        VStack {
-            RealityView { content in
-                content.camera = .spatialTracking
-                
-                if let skyBox = await makeSkybox() {
-                    self.skyBox = skyBox
-                    content.add(skyBox)
-                } else {
-                    print("WARN: No skybox specified")
-                }
-                
-                let root = Entity()
-                content.add(root)
-                root.transform = Transform(
-                    translation: .init(x: 0, y: 0, z: -0.5)
-                )
-                self.root = root
-                
-                if let sun = await makeStellarObject(name: "Sun") {
-                    self.sun = sun
-                    root.addChild(sun)
-                }
-                
-
-                if let earth = await makeStellarObject(
-                    name: "Earth",
-                    distanceFromCenter: 1.0
-                ) {
-                    sun?.addChildToMainBody(earth)
-                    
-                    // Moon of Earth
-                    if let moon = await makeStellarObject(
-                        name: "Moon",
-                        scale: 0.25,
-                        distanceFromCenter: 0.25
-                    ) {
-                        earth.addChildToMainBody(moon)
-                    }
-                }
-                
-                if let mercury = await makeStellarObject(
-                    name: "Mercury",
-                    scale: 0.38,
-                    distanceFromCenter: 0.39
-                ) {
-                    sun?.addChildToMainBody(mercury)
-                }
-                
-                if let venus = await makeStellarObject(
-                    name: "Venus",
-                    scale: 0.95,
-                    distanceFromCenter: 0.72
-                ) {
-                    sun?.addChildToMainBody(venus)
-                }
-                
-            } update: { content in
-                Task { @MainActor in
-                    self.skyBox?.isEnabled = isSkyboxVisible
-                    await updateOrbitAndRotation()
-                }
-            }
-            .background(.black)
-            .frame(maxHeight: .infinity)
-            .onAppear {
-                Task { @MainActor in
-                    RotationSystem.registerSystem()
-                }
-            }
-            
-            HStack(alignment: .top) {
-                VStack {
-                    Slider(value: $oneEarthDay, in: 0.1...5, step: 0.1)
-                    Text("1 Earth Day = \(oneEarthDay, specifier: "%.1f")s")
-                }
-                Toggle("Skybox", isOn: $isSkyboxVisible)
-                    .frame(width: 150)
-            }
-            .padding(.horizontal, 20)
-            
-        }
-        .ignoresSafeArea()
-    }
+    // MARK: - Private
     
     private func controlPanelView() -> some View {
         HStack(alignment: .top) {
             VStack {
-                Slider(value: $oneEarthDay, in: 0.1...5, step: 0.1)
-                Text("1 Earth Day = \(oneEarthDay, specifier: "%.1f")s")
+                Slider(value: $secondsInOneEarthDay, in: 0.1...5, step: 0.1)
+                Text("1 Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
             }
             Toggle("Skybox", isOn: $isSkyboxVisible)
                 .frame(width: 150)
@@ -173,10 +91,11 @@ struct OrbitStudyView: View {
     
     private func updateOrbitAndRotation() async {
         print("DEBUG: updateOrbitAndRotation")
-        sunRotationSpeed = earthRotationSpeed / 27
-        earthRotationSpeed = Self.oneRotationPerSec / oneEarthDay
+        earthRotationSpeed = Self.oneRotationPerSec / secondsInOneEarthDay
         earthOrbitalSpeed = earthRotationSpeed / 365.25
         
+        sunRotationSpeed = earthRotationSpeed / 27
+
         sunRotationSpeed = earthRotationSpeed / 27
         moonOrbitalSpeed = earthRotationSpeed / 27.3
         moonRotationSpeed = earthRotationSpeed / 27.3
