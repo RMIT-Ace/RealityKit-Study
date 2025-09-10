@@ -15,20 +15,7 @@ struct OrbitStudyView: View {
     static let oneRotationPerSec: Float = .pi * 2
     
     @State var secondsInOneEarthDay: Float = 5.0
-    
-    @State var sunRotationSpeed: Float = 0.0
-    @State var earthOrbitalSpeed: Float = 0.0
-    @State var earthRotationSpeed: Float = 0.0
-    @State var moonOrbitalSpeed: Float = 0.0
-    @State var moonRotationSpeed: Float = 0.0
-    @State var mercuryOrbitalSpeed: Float = 0.0
-    @State var mercuryRotationSpeed: Float = 0.0
-
     @State var root: Entity? = nil
-    @State var sun: Entity? = nil
-    @State var mercury: Entity? = nil
-    @State var venus: Entity? = nil
-
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
 
@@ -51,7 +38,7 @@ struct OrbitStudyView: View {
                 root.name = "root"
                 content.add(root)
                 root.transform = Transform(
-                    translation: .init(x: -2, y: 0, z: -0.5)
+                    translation: .init(x: -1, y: 0, z: -0.7)
                 )
                 self.root = root
                 
@@ -61,7 +48,12 @@ struct OrbitStudyView: View {
             } update: { content in
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
-                    await updateOrbitAndRotation()
+                    if let sun = vm.stellarObjects.first {
+                        await updateOrbitAndRotation(
+                            for: sun,
+                            speed: secondsInOneEarthDay
+                        )
+                    }
                 }
             }
             .onAppear {
@@ -89,24 +81,27 @@ struct OrbitStudyView: View {
         .padding(.horizontal, 20)
     }
     
-    private func updateOrbitAndRotation() async {
-        print("DEBUG: updateOrbitAndRotation")
-        earthRotationSpeed = Self.oneRotationPerSec / secondsInOneEarthDay
-        earthOrbitalSpeed = earthRotationSpeed / 365.25
+    /// Recursively update all stellaObject and their children to be relative
+    /// to the given 'speed'.
+    ///
+    /// - Parameters:
+    ///     - stellaObject: an object body in solar system, i.e. Earth, moon, Sun, etc.
+    ///     - speed: Time in one Earth-Day speeds up into given 'speed' seconds.
+    ///
+    private func updateOrbitAndRotation(
+       for stellaObject: StellarObject,
+       speed: Float
+    ) async {
+        let standarRotationSpeed = Self.oneRotationPerSec / speed
+        let rotationSpeed = standarRotationSpeed / stellaObject.rotationSpeed
+        let orbitalSpeed = standarRotationSpeed / stellaObject.orbitalSpeed
         
-        sunRotationSpeed = earthRotationSpeed / 27
-
-        sunRotationSpeed = earthRotationSpeed / 27
-        moonOrbitalSpeed = earthRotationSpeed / 27.3
-        moonRotationSpeed = earthRotationSpeed / 27.3
+        await updateRotation(for: stellaObject.name, speed: rotationSpeed)
+        await updateOrbit(for: stellaObject.name, speed: orbitalSpeed)
         
-        await updateRotation(for: "Sun", speed: sunRotationSpeed)
-        
-        await updateRotation(for: "Earth", speed: earthRotationSpeed)
-        await updateOrbit(for: "Earth", speed: earthOrbitalSpeed)
-        
-        await updateRotation(for: "Moon", speed: moonRotationSpeed)
-        await updateOrbit(for: "Moon", speed: moonOrbitalSpeed)
+        for child in stellaObject.satellites {
+            await updateOrbitAndRotation(for: child, speed: speed)
+        }
     }
     
     private func updateRotation(
