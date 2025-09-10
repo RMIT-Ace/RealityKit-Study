@@ -38,13 +38,21 @@ struct OrbitStudyView: View {
                 root.name = "root"
                 content.add(root)
                 root.transform = Transform(
-                    translation: .init(x: -1, y: 0, z: -0.7)
+                    translation: .init(x: -3, y: 0, z: -0.7)
                 )
                 self.root = root
                 
                 for stellaObj in vm.stellarObjects {
                     await addSolarObject(stellaObj, to: root)
                 }
+                
+                let mesh01 = MeshResource.generateSphere(radius: 0.005)
+                let sphere = ModelEntity(mesh: mesh01)
+                sphere.transform.translation.z = -0.15
+                let cameraAnchor = AnchorEntity(.camera)
+                sphere.setParent(cameraAnchor)
+                content.add(cameraAnchor)
+                
             } update: { content in
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
@@ -145,7 +153,6 @@ struct OrbitStudyView: View {
             scale: solarObj.scale,
             distanceFromCenter: solarObj.distanceCenter
         ) {
-            print("DEBUG: added \(obj.name) to \(entity.name)")
             if entity.name == "root" {
                 entity.addChild(obj)
             } else {
@@ -194,7 +201,7 @@ struct OrbitStudyView: View {
         guard let texture = try? await TextureResource(named: "starfield") else {
             fatalError("ERROR: Failed to load skybox texture")
         }
-        let mesh = MeshResource.generateSphere(radius: 500)
+        let mesh = MeshResource.generateSphere(radius: 50)
         //    let material = SimpleMaterial(color: .darkGray, isMetallic: false)
         let material = UnlitMaterial(texture: texture)
         let skyBoxEntity = ModelEntity(mesh: mesh, materials: [material])

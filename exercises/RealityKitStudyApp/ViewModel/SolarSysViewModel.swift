@@ -11,12 +11,12 @@ import Foundation
 class SolarSysViewModel {
     
     /// For scaling distance of objects to fit in the virtual room.
-    static let stellarDistanceRatio: Float = 1 / 90.0
+    static let stellarDistanceRatio: Float = 1 / 50.0
     
     let stellarObjects: [StellarObject] = [
         StellarObject(
             name: "Sun",
-            scale: 1.0 * 6,         // NOTE: This is NOT correct scale!
+            scale: 1.0 * 10,        // NOTE: This is NOT correct scale!
             distanceCenter: 0.0,
             rotationSpeed: 27.0,    // 27 earth-day.
             orbitalSpeed: 0.0,      // Doesn't orbit any object.
@@ -45,7 +45,7 @@ class SolarSysViewModel {
                         StellarObject(
                             name: "Moon",
                             scale: 1.0 / 3.0,
-                            distanceCenter: 12 * stellarDistanceRatio,
+                            distanceCenter: 10 * stellarDistanceRatio,
                             rotationSpeed: 27.3,    // 27.3 days around itself.
                             orbitalSpeed: 27.3,     // 27.3 days around Earth.
                         )
