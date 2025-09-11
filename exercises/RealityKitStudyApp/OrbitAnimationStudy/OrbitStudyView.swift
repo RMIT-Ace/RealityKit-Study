@@ -7,6 +7,7 @@
 
 import SwiftUI
 import RealityKit
+import ARKit
 
 struct OrbitStudyView: View {
     @Environment(SolarSysViewModel.self) var vm
@@ -21,6 +22,8 @@ struct OrbitStudyView: View {
 
     // Keep a reference to the light so we can re-aim it during updates.
     @State private var sunLight: Entity? = nil
+    
+    @State private var crosshair: Entity? = nil
     
     var body: some View {
         VStack {
@@ -46,12 +49,26 @@ struct OrbitStudyView: View {
                     await addSolarObject(stellaObj, to: root)
                 }
                 
-                let mesh01 = MeshResource.generateSphere(radius: 0.005)
+                // Crosshair
+                let sphereSize: Float = 0.001
+                let mesh01 = MeshResource.generateSphere(radius: sphereSize)
                 let sphere = ModelEntity(mesh: mesh01)
+                sphere.name = "crosshair"
                 sphere.transform.translation.z = -0.15
                 let cameraAnchor = AnchorEntity(.camera)
                 sphere.setParent(cameraAnchor)
+                sphere.components.set(
+                    CollisionComponent(
+                        shapes: [.generateSphere(radius: sphereSize)],
+                        mode: .trigger
+                                      )
+                )
+                sphere.components.set(InputTargetComponent())
                 content.add(cameraAnchor)
+                crosshair = sphere
+                
+                
+                // Raycast
                 
             } update: { content in
                 Task { @MainActor in
@@ -69,6 +86,44 @@ struct OrbitStudyView: View {
                     RotationSystem.registerSystem()
                 }
             }
+            .gesture(
+                TapGesture().targetedToAnyEntity().onEnded { event in
+                    
+                    // 1) Ensure we have a crosshair and a scene
+                    guard let crosshair = self.crosshair,
+                          let scene = crosshair.scene else {
+                        print("WARN: No crosshair or scene available")
+                        return
+                    }
+
+                    // 2) Get crosshair world position
+                    let crosshairWorldPos = crosshair.convert(position: crosshair.position, to: nil)
+
+                    // 3) Choose a world-space direction to raycast along
+                    // If your crosshair is visually drawn in front of the camera along +Z (in camera space),
+                    // you typically want to raycast forward in the camera's look direction in world space.
+                    if let cameraAnchor = crosshair.anchor {
+                        // Camera’s forward is its -Z axis in its local space.
+                        let cameraForwardLocal = SIMD3<Float>(0, 0, -1)
+                        let cameraForwardWorld = cameraAnchor.convert(direction: cameraForwardLocal, to: nil)
+
+                        // 4) Construct the end point far along that world direction
+                        let endPos = crosshairWorldPos + normalize(cameraForwardWorld) * 100.0
+
+                        // 5) Perform the raycast
+                        let results = scene.raycast(from: crosshairWorldPos, to: endPos)
+
+                        if let hit = results.first {
+                            print("DEBUG: ray hit entity: \(hit.entity.parent?.name) at position: \(hit.position) distance: \(hit.distance)")
+                            // Optional: respond to hit, e.g., select or highlight
+                        } else {
+                            print("DEBUG: raycast found no hits")
+                        }
+                    }
+                }
+            )
+            
+            // MARK: - SwiftUI components
             
             controlPanelView()
         }
@@ -170,11 +225,11 @@ struct OrbitStudyView: View {
         distanceFromCenter: Float = 0.0
     ) async -> Entity? {
         guard let url = Bundle.main.url(forResource: name, withExtension: "usdz"),
-              let stellarObj = try? await Entity(contentsOf: url) else {
+              let stellarObj = try? await ModelEntity(contentsOf: url) else {
             print("ERROR: loading Moon model")
             return nil
         }
-        
+        // MainBody - Container for pivoting/orbiting.
         let objPivotPoint = Entity()
         objPivotPoint.name = name
         stellarObj.name = "MainBody"
@@ -185,7 +240,23 @@ struct OrbitStudyView: View {
         )
         objPivotPoint.addChild(stellarObj)
         
-        // For adding children.
+        // Adding collision component
+        var objWidth: Float = 0.0
+        if let meshBounds = stellarObj.model?.mesh.bounds {
+            objWidth = Float(meshBounds.max.x - meshBounds.min.x)
+            stellarObj.components.set(
+                CollisionComponent(
+                    shapes: [.generateSphere(radius: objWidth / 2)],
+                    mode: .trigger
+                )
+            )
+            stellarObj.components.set( InputTargetComponent() )
+        } else {
+            print("WARN: no bounds on model, using 0.0 width")
+        }
+        
+
+        // For adding children. No Visual appearance..
         let nonRotatingMainBody = Entity()
         nonRotatingMainBody.name = "NonRotatingMainBody"
         nonRotatingMainBody.transform = Transform(
