@@ -61,7 +61,8 @@ class SolarSysViewModel {
                 StellarObject(
                     name: "Jupiter",
                     scale: 11.0,                    // 11 time bigger than Earth.
-                    distanceCenter: 778.5 * stellarDistanceRatio,
+//                    distanceCenter: 778.5 * stellarDistanceRatio, // Too far
+                    distanceCenter: 500 * stellarDistanceRatio,
                     rotationSpeed: 10.0 / 24.0,     // Roughly 10 Earth-hour.
                     orbitalSpeed: 4333.0            // 4,333 earth-day
                 ),

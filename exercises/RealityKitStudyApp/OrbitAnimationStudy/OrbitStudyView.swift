@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import ARKit
+internal import Combine
 
 struct OrbitStudyView: View {
     @Environment(SolarSysViewModel.self) var vm
@@ -25,8 +26,12 @@ struct OrbitStudyView: View {
     
     @State private var crosshair: Entity? = nil
     
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    @State private var crosshairTarget: String = ""
+    
     var body: some View {
-        VStack {
+        ZStack {
             RealityView { content in
                 content.camera = .spatialTracking
                 
@@ -50,11 +55,11 @@ struct OrbitStudyView: View {
                 }
                 
                 // Crosshair
-                let sphereSize: Float = 0.001
+                let sphereSize: Float = 0.0006
                 let mesh01 = MeshResource.generateSphere(radius: sphereSize)
                 let sphere = ModelEntity(mesh: mesh01)
                 sphere.name = "crosshair"
-                sphere.transform.translation.z = -0.15
+                sphere.transform.translation.z = -0.1
                 let cameraAnchor = AnchorEntity(.camera)
                 sphere.setParent(cameraAnchor)
                 sphere.components.set(
@@ -81,53 +86,34 @@ struct OrbitStudyView: View {
                     }
                 }
             }
+            .ignoresSafeArea()
             .onAppear {
                 Task { @MainActor in
                     RotationSystem.registerSystem()
                 }
             }
             .gesture(
-                TapGesture().targetedToAnyEntity().onEnded { event in
-                    
-                    // 1) Ensure we have a crosshair and a scene
-                    guard let crosshair = self.crosshair,
-                          let scene = crosshair.scene else {
-                        print("WARN: No crosshair or scene available")
-                        return
-                    }
-
-                    // 2) Get crosshair world position
-                    let crosshairWorldPos = crosshair.convert(position: crosshair.position, to: nil)
-
-                    // 3) Choose a world-space direction to raycast along
-                    // If your crosshair is visually drawn in front of the camera along +Z (in camera space),
-                    // you typically want to raycast forward in the camera's look direction in world space.
-                    if let cameraAnchor = crosshair.anchor {
-                        // Camera’s forward is its -Z axis in its local space.
-                        let cameraForwardLocal = SIMD3<Float>(0, 0, -1)
-                        let cameraForwardWorld = cameraAnchor.convert(direction: cameraForwardLocal, to: nil)
-
-                        // 4) Construct the end point far along that world direction
-                        let endPos = crosshairWorldPos + normalize(cameraForwardWorld) * 100.0
-
-                        // 5) Perform the raycast
-                        let results = scene.raycast(from: crosshairWorldPos, to: endPos)
-
-                        if let hit = results.first {
-                            print("DEBUG: ray hit entity: \(hit.entity.parent?.name) at position: \(hit.position) distance: \(hit.distance)")
-                            // Optional: respond to hit, e.g., select or highlight
-                        } else {
-                            print("DEBUG: raycast found no hits")
-                        }
-                    }
-                }
+                TapGesture().targetedToAnyEntity().onEnded { _ in performRaycast() }
             )
+            .onReceive(timer) { _ in
+                performRaycast()
+            }
             
             // MARK: - SwiftUI components
             
-            controlPanelView()
+            VStack {
+                Text(crosshairTarget)
+                    .font(Font.largeTitle.bold())
+                    .foregroundStyle(Color.white)
+//                    .safeAreaPadding(.top, 60)
+                Spacer()
+            }
+            VStack {
+                Spacer()
+                controlPanelView()
+            }
+            
         }
-        .ignoresSafeArea()
     }
 
     // MARK: - Private
@@ -142,6 +128,7 @@ struct OrbitStudyView: View {
                 .frame(width: 150)
         }
         .padding(.horizontal, 20)
+        .foregroundStyle(Color.white)
     }
     
     /// Recursively update all stellaObject and their children to be relative
@@ -265,6 +252,41 @@ struct OrbitStudyView: View {
         objPivotPoint.addChild(nonRotatingMainBody)
         
         return objPivotPoint
+    }
+    
+    private func performRaycast() {
+        // 1) Ensure we have a crosshair and a scene
+        guard let crosshair = self.crosshair,
+              let scene = crosshair.scene else {
+            print("WARN: No crosshair or scene available")
+            return
+        }
+
+        // 2) Get crosshair world position
+        let crosshairWorldPos = crosshair.convert(position: crosshair.position, to: nil)
+
+        // 3) Choose a world-space direction to raycast along
+        // If your crosshair is visually drawn in front of the camera along +Z (in camera space),
+        // you typically want to raycast forward in the camera's look direction in world space.
+        if let cameraAnchor = crosshair.anchor {
+            // Camera’s forward is its -Z axis in its local space.
+            let cameraForwardLocal = SIMD3<Float>(0, 0, -0.2)
+            let cameraForwardWorld = cameraAnchor.convert(direction: cameraForwardLocal, to: nil)
+
+            // 4) Construct the end point far along that world direction
+            let endPos = crosshairWorldPos + normalize(cameraForwardWorld) * 100.0
+
+            // 5) Perform the raycast
+            let results = scene.raycast(from: crosshairWorldPos, to: endPos)
+
+            if let hit = results.first,
+               let hitParent = hit.entity.parent {
+                let distStr = String(format: "%.2f", hit.distance)
+                crosshairTarget = "\(hitParent.name)\n(\(distStr)m)"
+            } else {
+                crosshairTarget = "(n/a)"
+            }
+        }
     }
     
     // See: https://www.cephalopod.studio/blog/creating-immersive-visionos-environments-with-reality-kit-and-skyboxes-from-blockade-labs-with-a-true-3d-world-surprise
