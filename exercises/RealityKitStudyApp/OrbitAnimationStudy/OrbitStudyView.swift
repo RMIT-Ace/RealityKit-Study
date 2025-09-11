@@ -54,6 +54,13 @@ struct OrbitStudyView: View {
                     await addSolarObject(stellaObj, to: root)
                 }
                 
+                // Light
+                let sunLightEntity = Entity()
+                sunLightEntity.components.set(
+                    PointLightComponent(intensity: 1000000)
+                )
+                root.addChild(sunLightEntity)
+                
                 // Crosshair
                 let sphereSize: Float = 0.0006
                 let mesh01 = MeshResource.generateSphere(radius: sphereSize)
@@ -71,9 +78,6 @@ struct OrbitStudyView: View {
                 sphere.components.set(InputTargetComponent())
                 content.add(cameraAnchor)
                 crosshair = sphere
-                
-                
-                // Raycast
                 
             } update: { content in
                 Task { @MainActor in
