@@ -75,7 +75,6 @@ struct OrbitStudyView: View {
                         mode: .trigger
                                       )
                 )
-                sphere.components.set(InputTargetComponent())
                 content.add(cameraAnchor)
                 crosshair = sphere
                 
@@ -241,11 +240,9 @@ struct OrbitStudyView: View {
                     mode: .trigger
                 )
             )
-            stellarObj.components.set( InputTargetComponent() )
         } else {
             print("WARN: no bounds on model, using 0.0 width")
         }
-        
 
         // For adding children. No Visual appearance..
         let nonRotatingMainBody = Entity()
@@ -259,30 +256,23 @@ struct OrbitStudyView: View {
     }
     
     private func performRaycast() {
-        // 1) Ensure we have a crosshair and a scene
         guard let crosshair = self.crosshair,
               let scene = crosshair.scene else {
             print("WARN: No crosshair or scene available")
             return
         }
 
-        // 2) Get crosshair world position
         let crosshairWorldPos = crosshair.convert(position: crosshair.position, to: nil)
 
-        // 3) Choose a world-space direction to raycast along
+        // Choose a world-space direction to raycast along
         // If your crosshair is visually drawn in front of the camera along +Z (in camera space),
         // you typically want to raycast forward in the camera's look direction in world space.
         if let cameraAnchor = crosshair.anchor {
             // Camera’s forward is its -Z axis in its local space.
             let cameraForwardLocal = SIMD3<Float>(0, 0, -0.2)
             let cameraForwardWorld = cameraAnchor.convert(direction: cameraForwardLocal, to: nil)
-
-            // 4) Construct the end point far along that world direction
             let endPos = crosshairWorldPos + normalize(cameraForwardWorld) * 100.0
-
-            // 5) Perform the raycast
             let results = scene.raycast(from: crosshairWorldPos, to: endPos)
-
             if let hit = results.first,
                let hitParent = hit.entity.parent {
                 let distStr = String(format: "%.2f", hit.distance)
