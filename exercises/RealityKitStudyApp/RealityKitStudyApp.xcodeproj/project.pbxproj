@@ -12,6 +12,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5065B35F2E73A00A002F5388 /* Exceptions for "3DEntities" folder in "RealityKitStudyApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SkyboxEntity.swift,
+			);
+			target = 50B08DE52E63F8D2004FF1F2 /* RealityKitStudyApp */;
+		};
 		50956D482E656260007CA447 /* Exceptions for "Components" folder in "RealityKitStudyApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -29,6 +36,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5065B3592E739FEB002F5388 /* 3DEntities */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5065B35F2E73A00A002F5388 /* Exceptions for "3DEntities" folder in "RealityKitStudyApp" target */,
+			);
+			path = 3DEntities;
+			sourceTree = "<group>";
+		};
 		5088C3532E6FE9A10033C501 /* Model */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Model;
@@ -88,6 +103,7 @@
 		50B08DDD2E63F8D2004FF1F2 = {
 			isa = PBXGroup;
 			children = (
+				5065B3592E739FEB002F5388 /* 3DEntities */,
 				5088C3542E6FE9A80033C501 /* ViewModel */,
 				5088C3532E6FE9A10033C501 /* Model */,
 				50956D492E656264007CA447 /* Systems */,
@@ -123,6 +139,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				5065B3592E739FEB002F5388 /* 3DEntities */,
 				5088C3532E6FE9A10033C501 /* Model */,
 				5088C3542E6FE9A80033C501 /* ViewModel */,
 				50956CFB2E65560D007CA447 /* OrbitAnimationStudy */,

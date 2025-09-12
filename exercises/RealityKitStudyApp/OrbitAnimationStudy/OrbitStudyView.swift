@@ -35,12 +35,7 @@ struct OrbitStudyView: View {
             RealityView { content in
                 content.camera = .spatialTracking
                 
-                if let skyBox = await makeSkybox() {
-                    self.skyBox = skyBox
-                    content.add(skyBox)
-                } else {
-                    print("WARN: No skybox specified")
-                }
+                await makeSkybox(content)
                 
                 let root = Entity()
                 root.name = "root"
@@ -108,7 +103,6 @@ struct OrbitStudyView: View {
                 Text(crosshairTarget)
                     .font(Font.largeTitle.bold())
                     .foregroundStyle(Color.white)
-//                    .safeAreaPadding(.top, 60)
                 Spacer()
             }
             VStack {
@@ -120,6 +114,16 @@ struct OrbitStudyView: View {
     }
 
     // MARK: - Private
+    
+    fileprivate func makeSkybox(_ content: RealityViewCameraContent) async {
+        do {
+            let skybox = try await SkyboxEntity(textureResourceName: "starfield")
+            self.skyBox = skybox
+            content.add(skybox)
+        } catch {
+            print("ERROR: Failed to load skybox")
+        }
+    }
     
     private func controlPanelView() -> some View {
         HStack(alignment: .top) {
@@ -283,18 +287,6 @@ struct OrbitStudyView: View {
         }
     }
     
-    // See: https://www.cephalopod.studio/blog/creating-immersive-visionos-environments-with-reality-kit-and-skyboxes-from-blockade-labs-with-a-true-3d-world-surprise
-    private func makeSkybox() async -> Entity? {
-        guard let texture = try? await TextureResource(named: "starfield") else {
-            fatalError("ERROR: Failed to load skybox texture")
-        }
-        let mesh = MeshResource.generateSphere(radius: 50)
-        //    let material = SimpleMaterial(color: .darkGray, isMetallic: false)
-        let material = UnlitMaterial(texture: texture)
-        let skyBoxEntity = ModelEntity(mesh: mesh, materials: [material])
-        skyBoxEntity.scale = [-1, 1, 1]
-        return skyBoxEntity
-    }
 }
 
 #Preview {
