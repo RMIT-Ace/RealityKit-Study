@@ -76,7 +76,7 @@ struct OrbitStudyView: View {
         root.name = "root"
         content.add(root)
         root.transform = Transform(
-            translation: .init(x: -3, y: 0, z: -0.7)
+            translation: .init(x: -3, y: 0, z: -0.3)
         )
         self.root = root
         
@@ -99,7 +99,7 @@ struct OrbitStudyView: View {
     private func controlPanelView() -> some View {
         HStack(alignment: .top) {
             VStack {
-                Slider(value: $secondsInOneEarthDay, in: 0.1...5, step: 0.1)
+                Slider(value: $secondsInOneEarthDay, in: 0.1...60, step: 0.5)
                 Text("Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
             }
             Toggle("Skybox", isOn: $isSkyboxVisible)

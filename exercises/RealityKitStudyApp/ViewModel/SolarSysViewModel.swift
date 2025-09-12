@@ -68,6 +68,13 @@ class SolarSysViewModel {
                     rotationSpeed: 10.0 / 24.0,     // Roughly 10 Earth-hour.
                     orbitalSpeed: 4333.0            // 4,333 earth-day
                 ),
+                StellarObject(
+                    name: "Saturn",
+                    scale: 5.0,
+                    distanceCenter: 450 * stellarDistanceRatio, // Not real value!
+                    rotationSpeed: 10.0 / 24.0,     // Roughly 10 Earth-hour
+                    orbitalSpeed: 10774.0            // 29.5 Earth years
+                ),
             ]
         )
     ]
