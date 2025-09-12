@@ -8,7 +8,6 @@
 import SwiftUI
 import RealityKit
 import ARKit
-internal import Combine
 
 struct OrbitStudyView: View {
     @Environment(SolarSysViewModel.self) var vm
@@ -20,67 +19,22 @@ struct OrbitStudyView: View {
     @State var root: Entity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
-
-    // Keep a reference to the light so we can re-aim it during updates.
     @State private var sunLight: Entity? = nil
-    
-    @State private var crosshair: Entity? = nil
-    
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
     @State private var crosshairTarget: String = ""
     
     var body: some View {
         ZStack {
             RealityView { content in
                 content.camera = .spatialTracking
-                
                 await makeSkybox(content)
-                
-                let root = Entity()
-                root.name = "root"
-                content.add(root)
-                root.transform = Transform(
-                    translation: .init(x: -3, y: 0, z: -0.7)
-                )
-                self.root = root
-                
-                for stellaObj in vm.stellarObjects {
-                    await addSolarObject(stellaObj, to: root)
-                }
-                
-                // Light
-                let sunLightEntity = Entity()
-                sunLightEntity.components.set(
-                    PointLightComponent(intensity: 1000000)
-                )
-                root.addChild(sunLightEntity)
-                
-                // Crosshair
-                let sphereSize: Float = 0.0006
-                let mesh01 = MeshResource.generateSphere(radius: sphereSize)
-                let sphere = ModelEntity(mesh: mesh01)
-                sphere.name = "crosshair"
-                sphere.transform.translation.z = -0.1
-                let cameraAnchor = AnchorEntity(.camera)
-                sphere.setParent(cameraAnchor)
-                sphere.components.set(
-                    CollisionComponent(
-                        shapes: [.generateSphere(radius: sphereSize)],
-                        mode: .trigger
-                                      )
-                )
-                content.add(cameraAnchor)
-                crosshair = sphere
-                
+                await setupUniverse(content)
+                content.add(await CrosshairEntity(action: updateHitTargetInfo))
+                await addPlanets()
             } update: { content in
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
                     if let sun = vm.stellarObjects.first {
-                        await updateOrbitAndRotation(
-                            for: sun,
-                            speed: secondsInOneEarthDay
-                        )
+                        await updateOrbitAndRotation(for: sun, speed: secondsInOneEarthDay)
                     }
                 }
             }
@@ -89,12 +43,6 @@ struct OrbitStudyView: View {
                 Task { @MainActor in
                     RotationSystem.registerSystem()
                 }
-            }
-            .gesture(
-                TapGesture().targetedToAnyEntity().onEnded { _ in performRaycast() }
-            )
-            .onReceive(timer) { _ in
-                performRaycast()
             }
             
             // MARK: - SwiftUI components
@@ -115,7 +63,7 @@ struct OrbitStudyView: View {
 
     // MARK: - Private
     
-    fileprivate func makeSkybox(_ content: RealityViewCameraContent) async {
+    private func makeSkybox(_ content: RealityViewCameraContent) async {
         do {
             let skybox = try await SkyboxEntity(textureResourceName: "starfield")
             self.skyBox = skybox
@@ -125,17 +73,51 @@ struct OrbitStudyView: View {
         }
     }
     
+    private func setupUniverse(_ content: RealityViewCameraContent) async {
+        let root = Entity()
+        root.name = "root"
+        content.add(root)
+        root.transform = Transform(
+            translation: .init(x: -3, y: 0, z: -0.7)
+        )
+        self.root = root
+        
+        // Light
+        let sunLightEntity = Entity()
+        sunLightEntity.components.set(
+            PointLightComponent(intensity: 1000000)
+        )
+        root.addChild(sunLightEntity)
+    }
+    
+    private func addPlanets() async {
+        if let root = root {
+            for stellaObj in vm.stellarObjects {
+                await addSolarObject(stellaObj, to: root)
+            }
+        }
+    }
+
     private func controlPanelView() -> some View {
         HStack(alignment: .top) {
             VStack {
                 Slider(value: $secondsInOneEarthDay, in: 0.1...5, step: 0.1)
-                Text("1 Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
+                Text("Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
             }
             Toggle("Skybox", isOn: $isSkyboxVisible)
                 .frame(width: 150)
         }
         .padding(.horizontal, 20)
         .foregroundStyle(Color.white)
+    }
+    
+    private func updateHitTargetInfo(target: Entity?, distance: Float) {
+        if let parent = target?.parent {
+            let distanceStr = String(format: "%0.2f", distance)
+            crosshairTarget = "\(parent.name)\n \(distanceStr)m away"
+        } else {
+            crosshairTarget = ""
+        }
     }
     
     /// Recursively update all stellaObject and their children to be relative
@@ -257,34 +239,6 @@ struct OrbitStudyView: View {
         objPivotPoint.addChild(nonRotatingMainBody)
         
         return objPivotPoint
-    }
-    
-    private func performRaycast() {
-        guard let crosshair = self.crosshair,
-              let scene = crosshair.scene else {
-            print("WARN: No crosshair or scene available")
-            return
-        }
-
-        let crosshairWorldPos = crosshair.convert(position: crosshair.position, to: nil)
-
-        // Choose a world-space direction to raycast along
-        // If your crosshair is visually drawn in front of the camera along +Z (in camera space),
-        // you typically want to raycast forward in the camera's look direction in world space.
-        if let cameraAnchor = crosshair.anchor {
-            // Camera’s forward is its -Z axis in its local space.
-            let cameraForwardLocal = SIMD3<Float>(0, 0, -0.2)
-            let cameraForwardWorld = cameraAnchor.convert(direction: cameraForwardLocal, to: nil)
-            let endPos = crosshairWorldPos + normalize(cameraForwardWorld) * 100.0
-            let results = scene.raycast(from: crosshairWorldPos, to: endPos)
-            if let hit = results.first,
-               let hitParent = hit.entity.parent {
-                let distStr = String(format: "%.2f", hit.distance)
-                crosshairTarget = "\(hitParent.name)\n(\(distStr)m)"
-            } else {
-                crosshairTarget = "(n/a)"
-            }
-        }
     }
     
 }

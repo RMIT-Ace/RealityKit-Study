@@ -15,6 +15,7 @@
 		5065B35F2E73A00A002F5388 /* Exceptions for "3DEntities" folder in "RealityKitStudyApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CrosshairEntity.swift,
 				SkyboxEntity.swift,
 			);
 			target = 50B08DE52E63F8D2004FF1F2 /* RealityKitStudyApp */;
