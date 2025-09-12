@@ -9,6 +9,10 @@ import Foundation
 import RealityKit
 internal import Combine
 
+/// Create a "crosshair" entity at the center of the camera view.
+/// Crosshair calls the callback "action" function periodically with
+/// object it detects or nil if there is none.
+///
 class CrosshairEntity: Entity {
     
     private var action: (_ hitEntity: Entity?, _ distance: Float) -> Void

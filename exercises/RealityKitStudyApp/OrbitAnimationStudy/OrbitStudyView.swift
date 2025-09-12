@@ -30,6 +30,9 @@ struct OrbitStudyView: View {
                 await setupUniverse(content)
                 content.add(await CrosshairEntity(action: updateHitTargetInfo))
                 await addPlanets()
+                Task { @MainActor in
+                    RotationSystem.registerSystem()
+                }
             } update: { content in
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
@@ -39,11 +42,6 @@ struct OrbitStudyView: View {
                 }
             }
             .ignoresSafeArea()
-            .onAppear {
-                Task { @MainActor in
-                    RotationSystem.registerSystem()
-                }
-            }
             
             // MARK: - SwiftUI components
             
