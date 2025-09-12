@@ -16,6 +16,7 @@ struct OrbitStudyView: View {
     static let oneRotationPerSec: Float = .pi * 2
     
     @State var secondsInOneEarthDay: Float = 5.0
+    @State var universeScale: Float = 1
     @State var root: Entity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
@@ -36,11 +37,13 @@ struct OrbitStudyView: View {
             } update: { content in
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
+                    self.root?.scale = .init(repeating: universeScale)
                     if let sun = vm.stellarObjects.first {
                         await updateOrbitAndRotation(for: sun, speed: secondsInOneEarthDay)
                     }
                 }
             }
+            
             .ignoresSafeArea()
             
             // MARK: - SwiftUI components
@@ -76,16 +79,20 @@ struct OrbitStudyView: View {
         root.name = "root"
         content.add(root)
         root.transform = Transform(
-            translation: .init(x: -3, y: 0, z: -0.3)
+            scale: SIMD3(repeating: universeScale),
+            translation: .init(x: -3, y: 0, z: -0.3),
         )
         self.root = root
         
         // Light
         let sunLightEntity = Entity()
         sunLightEntity.components.set(
-            PointLightComponent(intensity: 1000000)
+            PointLightComponent(intensity: 15000000)
         )
-        root.addChild(sunLightEntity)
+        if let sun = root.findEntity(named: "Sun") {
+            sun.addChild(sunLightEntity)
+            sunLightEntity.position.y = 1
+        }
     }
     
     private func addPlanets() async {
@@ -101,6 +108,7 @@ struct OrbitStudyView: View {
             VStack {
                 Slider(value: $secondsInOneEarthDay, in: 0.1...60, step: 0.5)
                 Text("Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
+                Slider(value: $universeScale, in: 0.1...2.0, step: 0.00001)
             }
             Toggle("Skybox", isOn: $isSkyboxVisible)
                 .frame(width: 150)
