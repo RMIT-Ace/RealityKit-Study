@@ -17,7 +17,7 @@ struct OrbitStudyView: View {
     
     @State var secondsInOneEarthDay: Float = 5.0
     @State var universeScale: Float = 0.1
-    @State var universeZ: Float = -0.07
+    @State var universeZ: Float = -0.1
     @State var root: Entity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
@@ -25,18 +25,15 @@ struct OrbitStudyView: View {
     @State private var crosshairTarget: String = ""
     
     let ratio: Float = 0.00005
-    @State private var entityPosition: SIMD3<Float> = .zero
-    @State private var currentZoom: Float = 1.0
     @State private var accumScale: Float = 0.1
     var moveGesture: some Gesture {
         DragGesture(coordinateSpace: .global)
             .onChanged { value in
                 guard let root = self.root else { return }
                 let translation = value.translation
-                entityPosition.x += Float(translation.width) * ratio
-                entityPosition.y -= Float(translation.height) * ratio
-                entityPosition.z = root.position.z
-                root.position = entityPosition
+                root.position.x += Float(translation.width) * ratio
+                root.position.y -= Float(translation.height) * ratio
+                root.position.z = root.position.z
             }
     }
     
@@ -49,7 +46,7 @@ struct OrbitStudyView: View {
                 accumScale = universeScale
             }
     }
-
+    
     var body: some View {
         ZStack {
             RealityView { content in
@@ -67,7 +64,7 @@ struct OrbitStudyView: View {
                     self.skyBox?.isEnabled = isSkyboxVisible
                     self.root?.scale = .init(repeating: universeScale)
                     self.root?.position.z = universeZ
-                    if let sun = vm.stellarObjects.first {
+                    if let sun = vm.celestialObjects.first {
                         await updateOrbitAndRotation(for: sun, speed: secondsInOneEarthDay)
                     }
                 }
@@ -132,7 +129,7 @@ struct OrbitStudyView: View {
     
     private func addPlanets() async {
         if let root = root {
-            for stellaObj in vm.stellarObjects {
+            for stellaObj in vm.celestialObjects {
                 await addSolarObject(stellaObj, to: root)
             }
         }
@@ -143,8 +140,8 @@ struct OrbitStudyView: View {
             VStack {
                 Slider(value: $secondsInOneEarthDay, in: 0.1...60, step: 0.5)
                 Text("Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
-                Slider(value: $universeScale, in: 0.01 ... 1.0, step: 0.00001)
-                Slider(value: $universeZ, in: -3.0 ... -0.1, step: 0.00001)
+                Slider(value: $universeScale, in: 0.01 ... 1.5, step: 0.00001)
+                Slider(value: $universeZ, in: -3.0 ... -0.05, step: 0.00001)
             }
             Toggle("Skybox", isOn: $isSkyboxVisible)
                 .frame(width: 150)
@@ -170,55 +167,31 @@ struct OrbitStudyView: View {
     ///     - speed: Time in one Earth-Day speeds up into given 'speed' seconds.
     ///
     private func updateOrbitAndRotation(
-       for stellaObject: StellarObject,
+       for celestialObject: CelestialObject,
        speed: Float
     ) async {
+        guard let celestialEntity  = findCelestialEntity(
+            named: celestialObject.name) else {
+            return
+        }
+        
         let standarRotationSpeed = Self.oneRotationPerSec / speed
-        let rotationSpeed = standarRotationSpeed / stellaObject.rotationSpeed
-        let orbitalSpeed = standarRotationSpeed / stellaObject.orbitalSpeed
+        let rotationSpeed = standarRotationSpeed / celestialObject.rotationSpeed
+        let orbitalSpeed = standarRotationSpeed / celestialObject.orbitalSpeed
         
-        await updateRotation(for: stellaObject.name, speed: rotationSpeed)
-        await updateOrbit(for: stellaObject.name, speed: orbitalSpeed)
-        
-        for child in stellaObject.satellites {
+        await celestialEntity.updateRotation(speed: rotationSpeed)
+        await celestialEntity.updateOrbit(speed: orbitalSpeed)
+        for child in celestialObject.satellites {
             await updateOrbitAndRotation(for: child, speed: speed)
         }
     }
     
-    private func updateRotation(
-        for name: String,
-        speed: Float
-    ) async {
-        guard let root = root,
-              let entity = root.findEntity(named: name),
-              let firstChild = entity.findEntity(named: "MainBody") else {
-            print("ERROR: failed to find entity with name: \(name)")
-            return
-        }
-        firstChild.components[RotationComponent.self] = RotationComponent(
-            rotationSpeed: speed,
-            rotationAxis: [0, 1, 0 ]
-        )
+    private func findCelestialEntity(named name: String) -> CelestialEntity? {
+        root?.findEntity(named: name) as? CelestialEntity
     }
-    
-    private func updateOrbit(
-        for name: String,
-        speed: Float
-    ) async {
-        guard let root = root,
-              let entity = root.findEntity(named: name) else {
-            print("ERROR: failed to find entity with name: \(name)")
-            return
-        }
-
-        entity.components[RotationComponent.self] = RotationComponent(
-            rotationSpeed: speed,
-            rotationAxis: [0, 1, 0]
-        )
-    }
-    
+   
     private func addSolarObject(
-        _ solarObj: StellarObject,
+        _ solarObj: CelestialObject,
         to entity: Entity
     ) async {
         if let obj = await CelestialEntity(

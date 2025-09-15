@@ -30,15 +30,14 @@ class CelestialEntity: Entity {
             return nil
         }
         // MainBody - Container for pivoting/orbiting.
-        let objPivotPoint = self
-        objPivotPoint.name = name
+        self.name = name
         celestialObj.name = "MainBody"
         celestialObj.scale = SIMD3(repeating: scale)
         celestialObj.transform = Transform(
             scale: SIMD3(repeating: scale),
             translation: .init(x: distanceFromCenter, y: 0, z: 0)
         )
-        objPivotPoint.addChild(celestialObj)
+        addChild(celestialObj)
         
         // Adding collision component
         var objWidth: Float = 0.0
@@ -60,6 +59,25 @@ class CelestialEntity: Entity {
         nonRotatingMainBody.transform = Transform(
             translation: .init(x: distanceFromCenter, y: 0, z: 0)
         )
-        objPivotPoint.addChild(nonRotatingMainBody)
+        addChild(nonRotatingMainBody)
+    }
+    
+    func updateRotation(speed: Float) async {
+        guard let entity = findEntity(named: name),
+              let firstChild = entity.findEntity(named: "MainBody") else {
+            print("ERROR: failed to find entity with name: \(name)")
+            return
+        }
+        firstChild.components[RotationComponent.self] = RotationComponent(
+            rotationSpeed: speed,
+            rotationAxis: [0, 1, 0 ]
+        )
+    }
+    
+    func updateOrbit( speed: Float) async {
+        components[RotationComponent.self] = RotationComponent(
+            rotationSpeed: speed,
+            rotationAxis: [0, 1, 0]
+        )
     }
 }

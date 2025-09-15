@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct StellarObject: Identifiable {
+struct CelestialObject: Identifiable {
     let id: UUID = UUID()
     let name: String
     var scale: Float
     var distanceCenter: Float
     var rotationSpeed: Float
     var orbitalSpeed: Float
-    var satellites: [StellarObject] = []
+    var satellites: [CelestialObject] = []
 }
