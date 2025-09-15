@@ -23,7 +23,7 @@ class SkyboxEntity: Entity {
     
     required init() {
         super.init()
-        let mesh = MeshResource.generateSphere(radius: 5)
+        let mesh = MeshResource.generateSphere(radius: 10)
         let material = SimpleMaterial(color: .darkGray, isMetallic: false)
         let skyBoxEntity = ModelEntity(mesh: mesh, materials: [material])
         skyBoxEntity.scale = [-1, 1, 1]

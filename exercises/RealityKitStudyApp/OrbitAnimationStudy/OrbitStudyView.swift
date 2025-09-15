@@ -21,7 +21,6 @@ struct OrbitStudyView: View {
     @State var root: Entity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
-    @State private var sunLight: Entity? = nil
     @State private var crosshairTarget: String = ""
     
     let ratio: Float = 0.00005
@@ -108,23 +107,21 @@ struct OrbitStudyView: View {
         root.transform = Transform(
             scale: SIMD3(repeating: universeScale),
             translation: .init(x: -0.5, y: 0, z: universeZ),
-//            translation: .init(x: -3, y: 0, z: -0.3),
         )
         root.components.set(CollisionComponent(shapes: [
-            .generateBox(size: [1, 1, 1])
+            .generateBox(size: [0.1, 0.1, 0.1])
         ]))
         root.components.set(InputTargetComponent())
         self.root = root
         
-        // Light
         let sunLightEntity = Entity()
-        sunLightEntity.components.set(
-            PointLightComponent(intensity: 15000000)
-        )
-        if let sun = root.findEntity(named: "Sun") {
-            sun.addChild(sunLightEntity)
-            sunLightEntity.position.y = 1
-        }
+        var point = PointLightComponent()
+        point.intensity = 25000             // Brightness
+        point.attenuationRadius = 60000     // How far
+        point.color = .white
+        sunLightEntity.components.set(point)
+        
+        root.addChild(sunLightEntity)
     }
     
     private func addPlanets() async {
@@ -132,6 +129,7 @@ struct OrbitStudyView: View {
             for stellaObj in vm.celestialObjects {
                 await addSolarObject(stellaObj, to: root)
             }
+            
         }
     }
 
