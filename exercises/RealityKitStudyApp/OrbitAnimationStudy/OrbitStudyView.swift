@@ -16,17 +16,45 @@ struct OrbitStudyView: View {
     static let oneRotationPerSec: Float = .pi * 2
     
     @State var secondsInOneEarthDay: Float = 5.0
-    @State var universeScale: Float = 1
+    @State var universeScale: Float = 0.1
+    @State var universeZ: Float = -0.07
     @State var root: Entity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
     @State private var sunLight: Entity? = nil
     @State private var crosshairTarget: String = ""
     
+    let ratio: Float = 0.00005
+    @State private var entityPosition: SIMD3<Float> = .zero
+    @State private var currentZoom: Float = 1.0
+    @State private var accumScale: Float = 0.1
+    var moveGesture: some Gesture {
+        DragGesture(coordinateSpace: .global)
+            .onChanged { value in
+                guard let root = self.root else { return }
+                let translation = value.translation
+                entityPosition.x += Float(translation.width) * ratio
+                entityPosition.y -= Float(translation.height) * ratio
+                entityPosition.z = root.position.z
+                root.position = entityPosition
+            }
+    }
+    
+    var zoomGesture: some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                universeScale = accumScale * Float(value)
+            }
+            .onEnded { value in
+                accumScale = universeScale
+            }
+    }
+
     var body: some View {
         ZStack {
             RealityView { content in
                 content.camera = .spatialTracking
+                
                 await makeSkybox(content)
                 await setupUniverse(content)
                 content.add(await CrosshairEntity(action: updateHitTargetInfo))
@@ -38,13 +66,15 @@ struct OrbitStudyView: View {
                 Task { @MainActor in
                     self.skyBox?.isEnabled = isSkyboxVisible
                     self.root?.scale = .init(repeating: universeScale)
+                    self.root?.position.z = universeZ
                     if let sun = vm.stellarObjects.first {
                         await updateOrbitAndRotation(for: sun, speed: secondsInOneEarthDay)
                     }
                 }
             }
-            
             .ignoresSafeArea()
+            .gesture(moveGesture)
+            .gesture(zoomGesture)
             
             // MARK: - SwiftUI components
             
@@ -80,8 +110,13 @@ struct OrbitStudyView: View {
         content.add(root)
         root.transform = Transform(
             scale: SIMD3(repeating: universeScale),
-            translation: .init(x: -3, y: 0, z: -0.3),
+            translation: .init(x: -0.5, y: 0, z: universeZ),
+//            translation: .init(x: -3, y: 0, z: -0.3),
         )
+        root.components.set(CollisionComponent(shapes: [
+            .generateBox(size: [1, 1, 1])
+        ]))
+        root.components.set(InputTargetComponent())
         self.root = root
         
         // Light
@@ -108,7 +143,8 @@ struct OrbitStudyView: View {
             VStack {
                 Slider(value: $secondsInOneEarthDay, in: 0.1...60, step: 0.5)
                 Text("Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
-                Slider(value: $universeScale, in: 0.1...2.0, step: 0.00001)
+                Slider(value: $universeScale, in: 0.01 ... 1.0, step: 0.00001)
+                Slider(value: $universeZ, in: -3.0 ... -0.1, step: 0.00001)
             }
             Toggle("Skybox", isOn: $isSkyboxVisible)
                 .frame(width: 150)

@@ -64,14 +64,14 @@ class SolarSysViewModel {
                     scale: 7.0,                    // 11 time bigger than Earth.
 //                    scale: 11.0,                    // 11 time too big
 //                    distanceCenter: 778.5 * stellarDistanceRatio, // Too far
-                    distanceCenter: 350 * stellarDistanceRatio,
+                    distanceCenter: 300 * stellarDistanceRatio,
                     rotationSpeed: 10.0 / 24.0,     // Roughly 10 Earth-hour.
                     orbitalSpeed: 4333.0            // 4,333 earth-day
                 ),
                 StellarObject(
                     name: "Saturn",
                     scale: 5.0,
-                    distanceCenter: 450 * stellarDistanceRatio, // Not real value!
+                    distanceCenter: 500 * stellarDistanceRatio, // Not real value!
                     rotationSpeed: 10.0 / 24.0,     // Roughly 10 Earth-hour
                     orbitalSpeed: 10774.0            // 29.5 Earth years
                 ),
