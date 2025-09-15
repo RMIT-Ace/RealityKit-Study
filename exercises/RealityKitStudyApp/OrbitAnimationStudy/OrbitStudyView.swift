@@ -221,7 +221,7 @@ struct OrbitStudyView: View {
         _ solarObj: StellarObject,
         to entity: Entity
     ) async {
-        if let obj = await makeStellarObject(
+        if let obj = await CelestialEntity(
             name: solarObj.name,
             scale: solarObj.scale,
             distanceFromCenter: solarObj.distanceCenter
@@ -235,52 +235,6 @@ struct OrbitStudyView: View {
                 await addSolarObject(child, to: obj)
             }
         }
-    }
-    
-    private func makeStellarObject(
-        name: String,
-        scale: Float = 1.0,
-        distanceFromCenter: Float = 0.0
-    ) async -> Entity? {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "usdz"),
-              let stellarObj = try? await ModelEntity(contentsOf: url) else {
-            print("ERROR: loading Moon model")
-            return nil
-        }
-        // MainBody - Container for pivoting/orbiting.
-        let objPivotPoint = Entity()
-        objPivotPoint.name = name
-        stellarObj.name = "MainBody"
-        stellarObj.scale = SIMD3(repeating: scale)
-        stellarObj.transform = Transform(
-            scale: SIMD3(repeating: scale),
-            translation: .init(x: distanceFromCenter, y: 0, z: 0)
-        )
-        objPivotPoint.addChild(stellarObj)
-        
-        // Adding collision component
-        var objWidth: Float = 0.0
-        if let meshBounds = stellarObj.model?.mesh.bounds {
-            objWidth = Float(meshBounds.max.x - meshBounds.min.x)
-            stellarObj.components.set(
-                CollisionComponent(
-                    shapes: [.generateSphere(radius: objWidth / 2)],
-                    mode: .trigger
-                )
-            )
-        } else {
-            print("WARN: no bounds on model, using 0.0 width")
-        }
-
-        // For adding children. No Visual appearance..
-        let nonRotatingMainBody = Entity()
-        nonRotatingMainBody.name = "NonRotatingMainBody"
-        nonRotatingMainBody.transform = Transform(
-            translation: .init(x: distanceFromCenter, y: 0, z: 0)
-        )
-        objPivotPoint.addChild(nonRotatingMainBody)
-        
-        return objPivotPoint
     }
     
 }
