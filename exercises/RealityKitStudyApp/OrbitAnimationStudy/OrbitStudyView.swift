@@ -32,7 +32,6 @@ struct OrbitStudyView: View {
                 let translation = value.translation
                 root.position.x += Float(translation.width) * ratio
                 root.position.y -= Float(translation.height) * ratio
-                root.position.z = root.position.z
             }
     }
     
