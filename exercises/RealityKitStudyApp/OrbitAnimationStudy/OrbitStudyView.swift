@@ -17,7 +17,7 @@ struct OrbitStudyView: View {
     
     @State var secondsInOneEarthDay: Float = 5.0
     @State var universeScale: Float = 0.1
-    @State var universeZ: Float = -0.5
+    @State var universeZ: Float = -0.1
     @State var root: Entity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
@@ -106,7 +106,7 @@ struct OrbitStudyView: View {
         content.add(root)
         root.transform = Transform(
             scale: SIMD3(repeating: universeScale),
-            translation: .init(x: -1, y: 0, z: universeZ),
+            translation: .init(x: -0.2, y: 0, z: universeZ),
         )
         root.components.set(CollisionComponent(shapes: [
             .generateBox(size: [0.1, 0.1, 0.1])

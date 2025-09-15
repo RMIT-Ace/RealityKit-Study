@@ -25,13 +25,13 @@ class CrosshairEntity: Entity {
     }
     
     required init(
-        distanceFromCamera: Float = -0.1,
+        distanceFromCamera: Float = -0.02,
         action: @escaping (Entity?, Float) -> Void = { _, _ in }
     ) async {
         self.action = action
         super.init()
         
-        let sphereSize: Float = 0.0006
+        let sphereSize: Float = 0.0001
         let mesh01 = MeshResource.generateSphere(radius: sphereSize)
         let sphere = ModelEntity(mesh: mesh01)
         sphere.name = "crosshair"
@@ -66,7 +66,7 @@ class CrosshairEntity: Entity {
         // you typically want to raycast forward in the camera's look direction in world space.
         if let cameraAnchor = crosshair.anchor {
             // Camera’s forward is its -Z axis in its local space.
-            let cameraForwardLocal = SIMD3<Float>(0, 0, -0.2)
+            let cameraForwardLocal = SIMD3<Float>(0, 0, -0.001)
             let cameraForwardWorld = cameraAnchor.convert(direction: cameraForwardLocal, to: nil)
             let endPos = crosshairWorldPos + normalize(cameraForwardWorld) * 100.0
             let results = scene.raycast(from: crosshairWorldPos, to: endPos)

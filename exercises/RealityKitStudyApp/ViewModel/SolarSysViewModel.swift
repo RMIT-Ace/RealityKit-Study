@@ -54,7 +54,6 @@ class SolarSysViewModel {
                 CelestialObject(
                     name: "Mars",
                     scale: 1.0 / 2.0,       // Half earth size.
-//                    distanceCenter: 228.0 * stellarDistanceRatio, // Too far
                     distanceCenter: 180.0 * stellarDistanceRatio,
                     rotationSpeed: 1.0,     // Roughly same as Earth day.
                     orbitalSpeed: 687.0     // 687 earth-day
@@ -62,8 +61,6 @@ class SolarSysViewModel {
                 CelestialObject(
                     name: "Jupiter",
                     scale: 3.0,                    // 11 time bigger than Earth.
-//                    scale: 11.0,                    // 11 time too big
-//                    distanceCenter: 778.5 * stellarDistanceRatio, // Too far
                     distanceCenter: 250 * stellarDistanceRatio,
                     rotationSpeed: 10.0 / 24.0,     // Roughly 10 Earth-hour.
                     orbitalSpeed: 4333.0            // 4,333 earth-day
