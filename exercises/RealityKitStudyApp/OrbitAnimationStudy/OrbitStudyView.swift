@@ -17,7 +17,7 @@ struct OrbitStudyView: View {
     
     @State var secondsInOneEarthDay: Float = 5.0
     @State var universeScale: Float = 0.1
-    @State var universeZ: Float = -0.1
+    @State var universeZ: Float = -0.5
     @State var root: Entity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
@@ -53,7 +53,7 @@ struct OrbitStudyView: View {
                 
                 await makeSkybox(content)
                 await setupUniverse(content)
-                content.add(await CrosshairEntity(action: updateHitTargetInfo))
+                content.add(await CrosshairEntity(action: updateTargetInCrosshair))
                 await addPlanets()
                 Task { @MainActor in
                     RotationSystem.registerSystem()
@@ -106,22 +106,13 @@ struct OrbitStudyView: View {
         content.add(root)
         root.transform = Transform(
             scale: SIMD3(repeating: universeScale),
-            translation: .init(x: -0.5, y: 0, z: universeZ),
+            translation: .init(x: -1, y: 0, z: universeZ),
         )
         root.components.set(CollisionComponent(shapes: [
             .generateBox(size: [0.1, 0.1, 0.1])
         ]))
         root.components.set(InputTargetComponent())
         self.root = root
-        
-        let sunLightEntity = Entity()
-        var point = PointLightComponent()
-        point.intensity = 25000             // Brightness
-        point.attenuationRadius = 60000     // How far
-        point.color = .white
-        sunLightEntity.components.set(point)
-        
-        root.addChild(sunLightEntity)
     }
     
     private func addPlanets() async {
@@ -136,7 +127,7 @@ struct OrbitStudyView: View {
     private func controlPanelView() -> some View {
         HStack(alignment: .top) {
             VStack {
-                Slider(value: $secondsInOneEarthDay, in: 0.1...60, step: 0.5)
+                Slider(value: $secondsInOneEarthDay, in: 0.1...10, step: 0.001)
                 Text("Earth Day = \(secondsInOneEarthDay, specifier: "%.1f")s")
                 Slider(value: $universeScale, in: 0.01 ... 1.5, step: 0.00001)
                 Slider(value: $universeZ, in: -3.0 ... -0.05, step: 0.00001)
@@ -148,7 +139,7 @@ struct OrbitStudyView: View {
         .foregroundStyle(Color.white)
     }
     
-    private func updateHitTargetInfo(target: Entity?, distance: Float) {
+    private func updateTargetInCrosshair(target: Entity?, distance: Float) {
         if let parent = target?.parent {
             let distanceStr = String(format: "%0.2f", distance)
             crosshairTarget = "\(parent.name)\n \(distanceStr)m away"
