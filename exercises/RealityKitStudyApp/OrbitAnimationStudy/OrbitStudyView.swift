@@ -189,8 +189,8 @@ struct OrbitStudyView: View {
         ) {
             if entity.name == "root" {
                 entity.addChild(obj)
-            } else {
-                entity.addChildToMainBody(obj)
+            } else if let celestialEntity = entity as? CelestialEntity {
+                celestialEntity.addChildToMainBody(obj)
             }
             for child in solarObj.satellites {
                 await addSolarObject(child, to: obj)

@@ -40,7 +40,7 @@ class SolarSysViewModel {
                     scale: 1.0,
                     distanceCenter: 149.6 * stellarDistanceRatio,
                     rotationSpeed: 1.0,         // 1 Day (duh!)
-                    orbitalSpeed: 365.25,       // Days to complete orbit around the sun.
+                    orbitalSpeed: 365.25,       // 365.25 is too long
                     satellites: [
                         CelestialObject(
                             name: "Moon",
