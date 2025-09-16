@@ -32,7 +32,6 @@ class CelestialEntity: Entity {
         // MainBody - Container for pivoting/orbiting.
         self.name = name
         celestialObj.name = "MainBody"
-        celestialObj.scale = SIMD3(repeating: scale)
         celestialObj.transform = Transform(
             scale: SIMD3(repeating: scale),
             translation: .init(x: distanceFromCenter, y: 0, z: 0)
