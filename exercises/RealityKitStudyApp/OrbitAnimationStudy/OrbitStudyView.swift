@@ -187,11 +187,6 @@ struct OrbitStudyView: View {
             scale: solarObj.scale,
             distanceFromCenter: solarObj.distanceCenter
         ) {
-//            if entity.name == "root" {
-//                entity.addChild(obj)
-//            } else if let celestialEntity = entity as? CelestialEntity {
-//                celestialEntity.addChild(obj)
-//            }
             entity.addChild(obj)
             for child in solarObj.satellites {
                 await addSolarObject(child, to: obj)
