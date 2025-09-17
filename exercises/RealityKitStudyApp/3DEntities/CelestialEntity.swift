@@ -14,7 +14,7 @@ import RealityKit
 class CelestialEntity: Entity {
     
     required init() {
-        fatalError("init() has not been implemented")
+        super.init()
     }
     
     required init?(
@@ -36,7 +36,7 @@ class CelestialEntity: Entity {
             scale: SIMD3(repeating: scale),
             translation: .init(x: distanceFromCenter, y: 0, z: 0)
         )
-        addChild(celestialObj)
+        super.addChild(celestialObj)
         
         // Adding collision component
         var objWidth: Float = 0.0
@@ -58,7 +58,7 @@ class CelestialEntity: Entity {
         nonRotatingMainBody.transform = Transform(
             translation: .init(x: distanceFromCenter, y: 0, z: 0)
         )
-        addChild(nonRotatingMainBody)
+        super.addChild(nonRotatingMainBody)
     }
     
     // Add and entity to the main body, not the pivot-point body.

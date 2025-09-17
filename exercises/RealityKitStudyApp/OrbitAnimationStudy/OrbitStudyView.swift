@@ -18,7 +18,7 @@ struct OrbitStudyView: View {
     @State var secondsInOneEarthDay: Float = 5.0
     @State var universeScale: Float = 0.1
     @State var universeZ: Float = -0.1
-    @State var root: Entity? = nil
+    @State var root: CelestialEntity? = nil
     @State private var skyBox: Entity? = nil
     @State private var isSkyboxVisible = false
     @State private var crosshairTarget: String = ""
@@ -100,7 +100,7 @@ struct OrbitStudyView: View {
     }
     
     private func setupUniverse(_ content: RealityViewCameraContent) async {
-        let root = Entity()
+        let root = CelestialEntity()
         root.name = "root"
         content.add(root)
         root.transform = Transform(
@@ -180,18 +180,19 @@ struct OrbitStudyView: View {
    
     private func addSolarObject(
         _ solarObj: CelestialObject,
-        to entity: Entity
+        to entity: CelestialEntity
     ) async {
         if let obj = await CelestialEntity(
             name: solarObj.name,
             scale: solarObj.scale,
             distanceFromCenter: solarObj.distanceCenter
         ) {
-            if entity.name == "root" {
-                entity.addChild(obj)
-            } else if let celestialEntity = entity as? CelestialEntity {
-                celestialEntity.addChild(obj)
-            }
+//            if entity.name == "root" {
+//                entity.addChild(obj)
+//            } else if let celestialEntity = entity as? CelestialEntity {
+//                celestialEntity.addChild(obj)
+//            }
+            entity.addChild(obj)
             for child in solarObj.satellites {
                 await addSolarObject(child, to: obj)
             }
